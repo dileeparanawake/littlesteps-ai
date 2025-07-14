@@ -2,6 +2,8 @@
 
 Full-stack LLM app with auth, prompt history, and Docker — for personalised parenting support
 
+[Project Kanban](https://github.com/users/dileeparanawake/projects/4/views/1)
+
 ## Next setup
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
