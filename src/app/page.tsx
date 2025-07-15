@@ -5,9 +5,9 @@ import { MousePointerClick } from 'lucide-react';
 
 export default function ChatPage() {
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="w-full max-w-xl mx-auto min-h-screen flex items-center justify-center">
       {/* chat card */}
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>LittleSteps Chat</CardTitle>
         </CardHeader>
@@ -30,7 +30,7 @@ export default function ChatPage() {
             <Input
               type="text"
               placeholder="Ask anything"
-              className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-3"
             />
             <Button size="sm" className="ml-2">
               Ask
