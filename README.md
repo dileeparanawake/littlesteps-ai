@@ -4,6 +4,10 @@ Full-stack LLM app with auth, prompt history, and Docker — for personalised pa
 
 [Project Kanban](https://github.com/users/dileeparanawake/projects/4/views/1)
 
+## 📝 License
+
+This project is licensed under the [MIT License](./LICENSE).
+
 ## Next setup
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
@@ -17,7 +21,7 @@ npm run dev
 # or
 yarn dev
 # or
-pnpm dev
+pnpm dev #  If using pnpm, you may see “ignored build scripts” on first install. Run pnpm approve-builds if needed.
 # or
 bun dev
 ```
