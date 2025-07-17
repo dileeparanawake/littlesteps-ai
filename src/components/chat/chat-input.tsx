@@ -3,20 +3,21 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-export function ChatInput({ onPromptChange, prompt, onSubmit, isLoading }) {
-  /*  
- To fix ts error, we need to define the props for the component. (Need to understand this)
-
 type ChatInputProps = {
-    promptInput: string;
-    onPromptChange: (value: string) => void;
-    onSubmit: () => void;
-    isLoading: boolean;
-    error: string | null;
-  }; 
-  
-  \*/
+  prompt: string;
+  onPromptChange: (value: string) => void;
+  onSubmit: () => void;
+  isLoading: boolean;
+  error: string | null;
+};
 
+export function ChatInput({
+  onPromptChange,
+  prompt,
+  onSubmit,
+  isLoading,
+  error,
+}: ChatInputProps) {
   return (
     <div className="flex items-center bg-muted rounded-lg px-2 py-1 shadow-sm">
       <Input

@@ -28,18 +28,20 @@ ChatThread.tsx
 
 export function ChatThread() {
   // state
-  const [prompt, setPrompt] = useState(''); // prompt is the input value (may be array in future?)
-  const [response, setResponse] = useState(''); // ai response value (may be array in future?)
-  const [isLoading, setIsLoading] = useState(false); // disable button for api call
-  const [error, setError] = useState(null); // handles error for api call
+
+  // consider message history state array
+  const [prompt, setPrompt] = useState<string>(''); // prompt is the input value (may be array in future?)
+  const [response, setResponse] = useState<string>(''); // ai response value (may be array in future?)
+  const [isLoading, setIsLoading] = useState<boolean>(false); // disable button for api call
+  const [error, setError] = useState<null | string>(null); // handles error for api call
 
   //handlers
 
-  const handleInputChange = (value: string) => {
+  const handleInputChange = (value: string): void => {
     setPrompt(value);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     // handle submit > api call
     setIsLoading(true);
 
@@ -48,10 +50,13 @@ export function ChatThread() {
       await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 seconds
 
       alert(`Submitting prompt: ${prompt}`);
-      setPrompt('');
-    } catch (err) {
-      console.error(err);
-      setError('Something went wrong.');
+      setPrompt(''); // consider prompt history state array
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        // test after api call setup - no error handling yet
+        // console.error(err);
+        // setError('Something went wrong.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -66,14 +71,14 @@ export function ChatThread() {
         </CardHeader>
         <CardContent>
           {/* chat history */}
-          <ChatHistory />
+          <ChatHistory response={response} />
           {/* chat input area */}
           <ChatInput
             onPromptChange={handleInputChange}
             prompt={prompt}
             onSubmit={handleSubmit}
             isLoading={isLoading}
-            // error={error}
+            error={error} // not used yet
           />
         </CardContent>
       </Card>
