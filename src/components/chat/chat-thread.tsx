@@ -30,7 +30,7 @@ export function ChatThread() {
   // state
   const [prompt, setPrompt] = useState(''); // prompt is the input value (may be array in future?)
   const [response, setResponse] = useState(''); // ai response value (may be array in future?)
-  const [isLoading, setIsLoading] = useState(false); // handles delay for api call
+  const [isLoading, setIsLoading] = useState(false); // disable button for api call
   const [error, setError] = useState(null); // handles error for api call
 
   //handlers
@@ -41,6 +41,20 @@ export function ChatThread() {
 
   const handleSubmit = async () => {
     // handle submit > api call
+    setIsLoading(true);
+
+    try {
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 seconds
+
+      alert(`Submitting prompt: ${prompt}`);
+      setPrompt('');
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,7 +68,13 @@ export function ChatThread() {
           {/* chat history */}
           <ChatHistory />
           {/* chat input area */}
-          <ChatInput onPromptChange={handleInputChange} prompt={prompt} />
+          <ChatInput
+            onPromptChange={handleInputChange}
+            prompt={prompt}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            // error={error}
+          />
         </CardContent>
       </Card>
     </div>

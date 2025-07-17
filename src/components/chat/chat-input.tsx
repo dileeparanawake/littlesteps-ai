@@ -3,7 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-export function ChatInput({ onPromptChange, prompt }) {
+export function ChatInput({ onPromptChange, prompt, onSubmit, isLoading }) {
   /*  
  To fix ts error, we need to define the props for the component. (Need to understand this)
 
@@ -26,7 +26,12 @@ type ChatInputProps = {
         onChange={(e) => onPromptChange(e.target.value)}
         className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-3"
       />
-      <Button size="sm" className="ml-2">
+      <Button
+        size="sm"
+        className="ml-2"
+        onClick={onSubmit}
+        disabled={isLoading}
+      >
         Ask
       </Button>
     </div>
