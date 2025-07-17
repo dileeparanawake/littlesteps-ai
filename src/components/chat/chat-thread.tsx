@@ -28,12 +28,20 @@ ChatThread.tsx
 
 export function ChatThread() {
   // state
-  const [promptInput, setPromptInput] = useState('');
-  const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [prompt, setPrompt] = useState(''); // prompt is the input value (may be array in future?)
+  const [response, setResponse] = useState(''); // ai response value (may be array in future?)
+  const [isLoading, setIsLoading] = useState(false); // handles delay for api call
+  const [error, setError] = useState(null); // handles error for api call
 
   //handlers
+
+  const handleInputChange = (value: string) => {
+    setPrompt(value);
+  };
+
+  const handleSubmit = async () => {
+    // handle submit > api call
+  };
 
   return (
     <div className="w-full max-w-xl mx-auto min-h-screen flex items-center justify-center">
@@ -46,7 +54,7 @@ export function ChatThread() {
           {/* chat history */}
           <ChatHistory />
           {/* chat input area */}
-          <ChatInput />
+          <ChatInput onPromptChange={handleInputChange} prompt={prompt} />
         </CardContent>
       </Card>
     </div>
