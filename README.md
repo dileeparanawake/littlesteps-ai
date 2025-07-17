@@ -4,6 +4,9 @@ Full-stack LLM app with auth, prompt history, and Docker — for personalised pa
 
 [Project Kanban](https://github.com/users/dileeparanawake/projects/4/views/1)
 
+Screenshot - Skeleton UI
+![LittleSteps AI Screenshot](./public/screenshots/littlesteps_screenshot_2025-07-17_Skeleton_UI.png)
+
 ## 📝 License
 
 This project is licensed under the [MIT License](./LICENSE).
