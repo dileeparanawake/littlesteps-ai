@@ -39,10 +39,26 @@ export function ChatThread() {
 
   const handleInputChange = (value: string): void => {
     setPrompt(value);
+    if (error) setError(null);
   };
 
   const handleSubmit = async (): Promise<void> => {
-    // TODO: add prompt validation to prevent api call for empty string
+    /* 
+    TODO:
+
+  •	Prompt is validated before submission.
+	•	fetch() POSTs to /api/prompt.
+	•	Response is parsed and saved to state.
+	•	Errors are caught and handled.
+	•	isLoading, error, and response are wired into the UI.
+    
+  
+    */
+    if (!prompt.trim()) {
+      setError('Please enter a prompt.');
+      return;
+    }
+
     // handle submit > api call
     setIsLoading(true);
 
