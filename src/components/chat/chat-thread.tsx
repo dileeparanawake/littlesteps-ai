@@ -5,27 +5,6 @@ import { ChatHistory } from '@/components/chat/chat-history';
 import { ChatInput } from '@/components/chat/chat-input';
 import { useState } from 'react';
 
-/* 
-
-- `prompt: string`
-- `response: string`
-- `isLoading: boolean`
-- `error: string | null`
-
-ChatThread.tsx
-│
-├── manages: prompt, response, isLoading, error
-│
-├── <ChatHistory response={response} />
-└── <ChatInput
-      promptInput={promptInput}
-      onPromptChange={setPromptInput}
-      onSubmit={handleSubmit}
-      isLoading={isLoading}
-      error={error}
-    />
-  */
-
 export function ChatThread() {
   // state
 
@@ -45,8 +24,8 @@ export function ChatThread() {
   const handleSubmit = async (): Promise<void> => {
     /* 
     TODO:
-
-  •	Prompt is validated before submission.
+""
+  •	Prompt is validated before submission. Done
 	•	fetch() POSTs to /api/prompt.
 	•	Response is parsed and saved to state.
 	•	Errors are caught and handled.
@@ -55,6 +34,7 @@ export function ChatThread() {
   
     */
     if (!prompt.trim()) {
+      console.log(`Whitespace validation:[${prompt}]`, `[${prompt.trim()}]`);
       setError('Please enter a prompt.');
       return;
     }
@@ -96,7 +76,7 @@ export function ChatThread() {
             prompt={prompt}
             onSubmit={handleSubmit}
             isLoading={isLoading}
-            error={error} // not used yet
+            error={error}
           />
         </CardContent>
       </Card>
