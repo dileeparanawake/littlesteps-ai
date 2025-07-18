@@ -42,6 +42,7 @@ export function ChatThread() {
   };
 
   const handleSubmit = async (): Promise<void> => {
+    // TODO: add prompt validation to prevent api call for empty string
     // handle submit > api call
     setIsLoading(true);
 
@@ -50,7 +51,8 @@ export function ChatThread() {
       await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 seconds
 
       alert(`Submitting prompt: ${prompt}`);
-      setPrompt(''); // consider prompt history state array
+      setPrompt(''); // NOTE: consider prompt history state array
+      // TODO: add err handling
     } catch (err: unknown) {
       if (err instanceof Error) {
         // test after api call setup - no error handling yet
