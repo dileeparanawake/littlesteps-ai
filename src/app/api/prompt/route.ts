@@ -5,6 +5,19 @@
 // TODO: test locally using postman
 
 import { NextResponse } from 'next/server';
+import { OpenAI } from 'openai';
+
+const isMock = process.env['MOCK_API'] === 'true';
+
+const client = new OpenAI({
+  apiKey: process.env['OPENAI_API_KEY'],
+  baseURL: isMock
+    ? 'https://api.openai-mock.com/v1'
+    : 'https://api.openai.com/v1',
+});
+
+console.log('Using mock:', isMock);
+console.log('Base URL:', client.baseURL);
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
@@ -19,6 +32,16 @@ export async function POST(req: Request) {
       );
     }
     // TODO: add api call to openai.
+    const completion = await client.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: `${prompt}` },
+      ],
+    });
+
+    console.log(completion.choices[0].message.content);
+
     // stubbed response
     const response = `Dummy response to: "${prompt}"`;
 
