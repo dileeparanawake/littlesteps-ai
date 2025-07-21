@@ -11,6 +11,7 @@ export async function POST(req: Request) {
 
   // validate input
   try {
+    // throw new Error('Simulated server failure'); // test server error
     if (typeof prompt !== 'string' || prompt.trim() === '') {
       return NextResponse.json(
         { error: 'Invalid request body' },
@@ -19,13 +20,12 @@ export async function POST(req: Request) {
     }
     // TODO: add api call to openai.
     // stubbed response
-    const fakeResponse = `Dummy response to: "${prompt}"`;
+    const response = `Dummy response to: "${prompt}"`;
 
-    return NextResponse.json({ response: fakeResponse });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ response: response }, { status: 200 });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

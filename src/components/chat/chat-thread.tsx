@@ -22,17 +22,6 @@ export function ChatThread() {
   };
 
   const handleSubmit = async (): Promise<void> => {
-    /* 
-    TODO:
-""
-  •	Prompt is validated before submission. Done
-	•	fetch() POSTs to /api/prompt.
-	•	Response is parsed and saved to state.
-	•	Errors are caught and handled.
-	•	isLoading, error, and response are wired into the UI.
-    
-  
-    */
     if (!prompt.trim()) {
       console.log(`Whitespace validation:[${prompt}]`, `[${prompt.trim()}]`);
       setError('Please enter a prompt.');
@@ -43,17 +32,26 @@ export function ChatThread() {
     setIsLoading(true);
 
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 seconds
+      const response = await fetch('/api/prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
 
-      alert(`Submitting prompt: ${prompt}`);
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(`Server error: ${error}`);
+      }
+
+      const responseData = await response.json();
+
+      setResponse(responseData.response);
       setPrompt(''); // NOTE: consider prompt history state array
-      // TODO: add err handling
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        // test after api call setup - no error handling yet
-        // console.error(err);
-        // setError('Something went wrong.');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message || 'Something went wrong.');
       }
     } finally {
       setIsLoading(false);
