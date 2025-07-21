@@ -10,7 +10,9 @@ import { OpenAI } from 'openai';
 const isMock = process.env['MOCK_API'] === 'true';
 
 const client = new OpenAI({
-  apiKey: process.env['OPENAI_API_KEY'],
+  apiKey: isMock
+    ? process.env['OPENAI_API_KEY_MOCK']
+    : process.env['OPENAI_API_KEY'],
   baseURL: isMock
     ? 'https://api.openai-mock.com/v1'
     : 'https://api.openai.com/v1',
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
     console.log(completion.choices[0].message.content);
 
     // stubbed response
-    const response = `Dummy response to: "${prompt}"`;
+    const response = `Response: ${completion.choices[0].message.content} Prompt: "${prompt}"`;
 
     return NextResponse.json({ response: response }, { status: 200 });
   } catch (error: unknown) {
