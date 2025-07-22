@@ -14,6 +14,8 @@ Simple frontend + backend OpenAI integration, containerized for local developmen
 
 ## 🎯 Milestone: MVS 1 — Prompt Interface (No Auth)
 
+🔗 [View source at MVS1 tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs1-complete) – snapshot of the code at milestone completion
+
 **Goal:** A basic prompt/response interface using OpenAI, containerized for local dev.
 
 ### ✅ Features
