@@ -1,0 +1,39 @@
+# Dependencies and builds
+node_modules
+.next
+dist
+/.pnp
+.pnp.*
+.yarn/*
+
+# Env and secrets
+.env
+.env.local
+.env.*.local
+
+# OS + editor-specific junk
+.DS_Store
+*.log
+*.log.*
+
+# testing
+coverage/
+test-results/
+
+# Git
+.git
+.gitignore
+
+# Volta / tooling caches (optional)
+.pnpm-store
+.vscode
+
+# Typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+/project_admin/
+*.swp        
+*.tmp       
+*.bak       
