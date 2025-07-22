@@ -33,18 +33,17 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-    // TODO: add api call to openai.
+
     const completion = await client.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4.1-nano', // TODO: change to gpt-4o-mini
       messages: [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: `${prompt}` },
       ],
     });
 
-    console.log(completion.choices[0].message.content);
+    console.log('Open AI response:', completion.choices[0].message.content);
 
-    // stubbed response
     const response = `Response: ${completion.choices[0].message.content} Prompt: "${prompt}"`;
 
     return NextResponse.json({ response: response }, { status: 200 });
