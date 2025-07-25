@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatHistory } from '@/components/chat/chat-history';
 import { ChatInput } from '@/components/chat/chat-input';
+
 import { useState } from 'react';
 
 export function ChatThread() {
@@ -68,6 +69,7 @@ export function ChatThread() {
         <CardContent>
           {/* chat history */}
           <ChatHistory response={response} />
+
           {/* chat input area */}
           <ChatInput
             onPromptChange={handleInputChange}
