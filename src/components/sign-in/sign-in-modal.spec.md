@@ -44,7 +44,6 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 - `displaySignInModal: boolean` – Controls visibility of modal
 - `onClose: () => void` – Called when user clicks backdrop or dismisses modal
-- `onSignIn: () => void` - called when user click sign in with Button
 
 ## TODO
 
@@ -52,17 +51,24 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 - [x] Define global state `displaySignInModal`
 - [x] Define local state (`error`, `isAuthenticating`)
-- [ ] Implement handlers (`handleSignInClick`, `handleBackdropClick`)
-- [ ] Pass and consume props (`displaySignInModal`, `onClose`, `onSignIn`)
+- [x] Implement handlers (`handleSignInClick`, `handleBackdropClick`)
+- [x] Implement handlers (`onClose`, )
+- [x] Pass and consume props (`displaySignInModal`, `onClose`, )
+
+### 🔐 Integration
+
+- [ ] implement signIn logic
+- [ ] Hook up `signIn.social()` via BetterAuth
+- [ ] Gate prompt/route behind session state (`useSession()`)
 
 ### ⚠️ Error Handling (refactor)
 
 - [ ] Reuse or refactor error alert UI (e.g. shared alert component)
 
-### 🔐 Integration
+### Conditional rendering
 
-- [ ] Hook up `signIn.social()` via BetterAuth
-- [ ] Gate prompt/route behind session state (`useSession()`)
+- [ ] hide modal default
+- [ ] if user click's 'ask' display if user is unauthenticated
 
 ### ✨ UX Polish
 

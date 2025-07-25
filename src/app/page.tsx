@@ -5,11 +5,18 @@ import SignInModal from '@/components/sign-in/sign-in-modal';
 import { useState } from 'react';
 
 export default function ChatPage() {
-  const [displaySignInModal, setDisplaySignInModal] = useState<boolean>(false);
+  const [displaySignInModal, setDisplaySignInModal] = useState<boolean>(true);
+
+  const handleClose = () => {
+    setDisplaySignInModal(false);
+  };
 
   return (
     <div>
-      <SignInModal />
+      <SignInModal
+        displaySignInModal={displaySignInModal}
+        onClose={handleClose}
+      />
       <ChatThread />
     </div>
   );
