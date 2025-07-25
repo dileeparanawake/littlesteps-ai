@@ -1,4 +1,4 @@
-# LoginModal Component Spec
+# SignInModal Component Spec
 
 ## Purpose
 
@@ -6,16 +6,16 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 ## Display Logic
 
-- Show when: `showSignininModal = true`
-- Hidde when: `showSignininModal = false`
+- Show when: `displaySignInModal = true`
+- Hide when: `displaySignInModal = false`
 - Trigger by: unauthenticated user trying to submit a prompt
 - Dismiss by: clicking outside modal
 - On success: modal hidden, `isSignedIn` is set to true
 
 ## States
 
-- `showSignInModal: boolean` (parent root page segment)
-- `setError: string | null` (local)
+- `displaySignInModal: boolean` (parent root page segment)
+- `error: string | null` (local)
 - `isAuthenticating: boolean` (local)
 
 ## Behavior
@@ -31,28 +31,40 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 ## Integration Points
 
 - `useSession()` (via BetterAuth.js) to check if user is authenticated
-- `showSignInModal: boolean` (parent root page segment)
+- `displaySignInModal: boolean` (parent root page segment)
 - `api/prompt/route.ts` ( Prompt is gated behind auth; login flow may resume this interaction)
 - `signIn.social()` – Auth provider call (via BetterAuth.js)
 
 ## Handlers & Internal Logic
 
-User clicks button - handleSignInClick() calls signIn.social(...)
-User clicks backdrop handleBackdropClick() (clears error + hides modal)
-Auth error occurs handleError() (sets error message)
+- `handleSignInClick()` – Triggers `signIn.social(...)`
+- `handleBackdropClick()` – Hides modal and clears `error`
+- `handleError()` – Parses error and sets `error`
 
 ## Props
 
+- `displaySignInModal: boolean` – Controls visibility of modal
+- `onClose: () => void` – Called when user clicks backdrop or dismisses modal
+- `onSignIn: () => void` - called when user click sign in with Button
+
 ## TODO
 
-- [ ] add states
-- [ ] add show / hide logic
-- [ ] add handlers
-- [ ] pass props
-- [ ] add error logic (refactor error handler chat-thread)
-- [ ] add error alert (refactor chat error alert)
+### 🔧 Component Implementation
 
-## Notes
+- [ ] Define local state (`error`, `isAuthenticating`)
+- [ ] Implement handlers (`handleSignInClick`, `handleBackdropClick`, `handleError`)
+- [ ] Pass and consume props (`displaySignInModal`, `onClose`, `onSignIn`)
 
-Refactor alert (chat-thread) to primitive component
-Update prompt/route gate flow on authentication state
+### ⚠️ Error Handling (refactor)
+
+- [ ] Extract error logic to `handleError()` (currently inline in `chat-thread`)
+- [ ] Reuse or refactor error alert UI (e.g. shared alert component)
+
+### 🔐 Integration
+
+- [ ] Hook up `signIn.social()` via BetterAuth
+- [ ] Gate prompt/route behind session state (`useSession()`)
+
+### ✨ UX Polish
+
+- [ ] Disable Sign In Button (while `isAuthenticating`)
