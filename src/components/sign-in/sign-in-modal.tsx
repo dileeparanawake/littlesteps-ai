@@ -18,16 +18,14 @@ export default function SignInModal() {
 
   const handleSignInClick = () => {
     setIsAuthenticating(true);
+    // TODO: signIn.social() via BetterAuth in integration step
+    // TODO: handle errors
   };
 
   const handleBackdropClick = () => {
     setError(null);
     setIsAuthenticating(false);
-  };
-
-  const handleError = (error: string) => {
-    setError(error);
-    setIsAuthenticating(false);
+    // TODO: hide modal with onClose()
   };
 
   return (

@@ -37,9 +37,8 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 ## Handlers & Internal Logic
 
-- `handleSignInClick()` – Triggers `signIn.social(...)`
-- `handleBackdropClick()` – Hides modal and clears `error`
-- `handleError()` – Parses error and sets `error`
+- `handleSignInClick()` – Triggers `signIn.social(...)` `setIsAuthenticating(true)`
+- `handleBackdropClick()` – Hides modal and clears `error` `setIsAuthenticating(false)`
 
 ## Props
 
@@ -52,13 +51,12 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 ### Implement SignInModal state, handlers, and props
 
 - [x] Define global state `displaySignInModal`
-- [ ] Define local state (`error`, `isAuthenticating`)
-- [ ] Implement handlers (`handleSignInClick`, `handleBackdropClick`, `handleError`)
+- [x] Define local state (`error`, `isAuthenticating`)
+- [ ] Implement handlers (`handleSignInClick`, `handleBackdropClick`)
 - [ ] Pass and consume props (`displaySignInModal`, `onClose`, `onSignIn`)
 
 ### ⚠️ Error Handling (refactor)
 
-- [ ] Extract error logic to `handleError()` (currently inline in `chat-thread`)
 - [ ] Reuse or refactor error alert UI (e.g. shared alert component)
 
 ### 🔐 Integration
