@@ -5,7 +5,7 @@ import SignInModal from '@/components/sign-in/sign-in-modal';
 import { useState } from 'react';
 
 export default function ChatPage() {
-  // const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); NOTE: not needed auth will handle this.
+  const [displaySignInModal, setDisplaySignInModal] = useState<boolean>(false);
 
   return (
     <div>

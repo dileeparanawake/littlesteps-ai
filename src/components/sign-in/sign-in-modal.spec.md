@@ -49,8 +49,9 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 ## TODO
 
-### 🔧 Component Implementation
+### Implement SignInModal state, handlers, and props
 
+- [x] Define global state `displaySignInModal`
 - [ ] Define local state (`error`, `isAuthenticating`)
 - [ ] Implement handlers (`handleSignInClick`, `handleBackdropClick`, `handleError`)
 - [ ] Pass and consume props (`displaySignInModal`, `onClose`, `onSignIn`)
