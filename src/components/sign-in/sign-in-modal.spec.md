@@ -47,6 +47,11 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 ## TODO
 
+### Build Login Modal UI Skeleton
+
+- [x] skeleton UI LoginModal Component
+- [x] isLoggedIn state
+
 ### Implement SignInModal state, handlers, and props
 
 - [x] Define global state `displaySignInModal`
@@ -54,14 +59,17 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 - [x] Implement handlers (`handleSignInClick`, `handleBackdropClick`)
 - [x] Implement handlers (`onClose`, )
 - [x] Pass and consume props (`displaySignInModal`, `onClose`, )
+- [x] Disable Sign In Button (while `isAuthenticating`)
 
-### 🔐 Integration
+### Wire Up OAuth via BetterAuth
 
-- [ ] implement signIn logic
-- [ ] Hook up `signIn.social()` via BetterAuth
+- [ ] call `signIn.social()` via BetterAuth
+  - [ ] handle success / fail
+  - [ ] set auth states
+  - [ ] close modal on success
 - [ ] Gate prompt/route behind session state (`useSession()`)
 
-### ⚠️ Error Handling (refactor)
+### Error Handling (refactor)
 
 - [ ] Reuse or refactor error alert UI (e.g. shared alert component)
 
@@ -70,6 +78,4 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 - [ ] hide modal default
 - [ ] if user click's 'ask' display if user is unauthenticated
 
-### ✨ UX Polish
-
-- [ ] Disable Sign In Button (while `isAuthenticating`)
+### UX Polish
