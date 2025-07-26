@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 
 import { useState } from 'react';
 
+import { signIn } from '@/lib/sign-in';
+
 type SignInModalProps = {
   displaySignInModal: boolean;
   onClose: () => void;
@@ -24,8 +26,15 @@ export default function SignInModal({
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
-  const handleSignInClick = () => {
+  const handleSignInClick = async () => {
     setIsAuthenticating(true);
+
+    try {
+      await signIn();
+    } catch (error) {
+      console.error(error);
+    }
+
     // TODO: signIn.social() via BetterAuth in integration step
     // TODO: handle errors
     onClose();

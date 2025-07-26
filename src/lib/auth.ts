@@ -5,6 +5,9 @@ export const auth = betterAuth({
   // TODO: update DB config instructions step 4 for MVS3 https://www.better-auth.com/docs/installation
 
   database: new Database('./sqlite.db'),
+  emailAndPassword: {
+    enabled: false,
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
