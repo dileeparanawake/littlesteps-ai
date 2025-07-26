@@ -61,8 +61,17 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 - [x] Pass and consume props (`displaySignInModal`, `onClose`, )
 - [x] Disable Sign In Button (while `isAuthenticating`)
 
+### Configure Temporary Auth Database (SQLite)
+
+- [x] Install `better-sqlite3` (or equivalent adapter)
+- [x] Add temporary SQLite adapter in `lib/auth.ts`
+- [x] Ensure `.db` & /better-auth_migrations files is `.gitignored` and `.dockerignored`
+- [x] Generate and Migrate db
+- [x] Add TODO in code: replace with PostgreSQL + Drizzle in MVS3
+
 ### Wire Up OAuth via BetterAuth
 
+- [x] scaffold BetterAuth with Google provider and route handler (noDB)
 - [ ] call `signIn.social()` via BetterAuth
   - [ ] handle success / fail
   - [ ] set auth states

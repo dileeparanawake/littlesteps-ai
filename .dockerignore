@@ -37,3 +37,8 @@ next-env.d.ts
 *.swp        
 *.tmp       
 *.bak       
+
+# SQLite database
+*.db
+*.db-journal
+/better-auth_migrations
