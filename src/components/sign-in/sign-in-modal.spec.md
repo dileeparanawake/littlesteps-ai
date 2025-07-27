@@ -84,9 +84,10 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 ### Conditional modal rendering
 
-- [ ] hide modal default
-- [ ] if user click's 'ask' display if user is unauthenticated
-- [ ] hide modal if user clicks backdrop
-- [ ] check session status inside chat-thread when user interacts
+- [x] sign-in flow with session gating (client)
+  - [x] hide modal default
+  - [x] if user click's 'ask' display if user is unauthenticated
+  - [x] hide modal if user clicks backdrop
+  - [x] check session status inside chat-thread when user interacts
 
 ### UX Polish

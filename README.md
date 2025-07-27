@@ -106,6 +106,10 @@ Each slice represents a testable, deployable vertical feature. Completed items a
 - [ ] **MVS 4: Hosting & Deployment** – Deploy via Docker to DigitalOcean with secure config and optional CI/CD.
 - [ ] **MVS 5: Milestone Guidance** – Use LLM to suggest parenting milestones based on prompt history.
 
+## 🐞 Known Issues
+
+See [known-issues.md](./known-issues.md) for notes on disabled features, bugs, and future fixes.
+
 ## 📝 License
 
 This project is licensed under the [MIT License](./LICENSE).
