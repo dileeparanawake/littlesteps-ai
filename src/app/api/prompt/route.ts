@@ -5,7 +5,10 @@
 // TODO: test locally using postman
 
 import { NextResponse } from 'next/server';
+
 import { OpenAI } from 'openai';
+
+import getServerSession from '@/lib/server-session';
 
 const isMock = process.env['MOCK_API'] === 'true';
 
@@ -24,8 +27,18 @@ console.log('Base URL:', client.baseURL);
 export async function POST(req: Request) {
   const { prompt } = await req.json();
 
+  const session = await getServerSession();
+  console.log('User session:', session?.user?.email ?? 'no session');
+
   // validate input
   try {
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - please sign in' },
+        { status: 401 },
+      );
+    }
+
     // throw new Error('Simulated server failure'); // test server error
     if (typeof prompt !== 'string' || prompt.trim() === '') {
       return NextResponse.json(

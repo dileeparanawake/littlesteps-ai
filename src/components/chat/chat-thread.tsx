@@ -34,6 +34,7 @@ export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
 
   const handleSubmit = async (): Promise<void> => {
     setIsLoading(true);
+
     if (!session?.user) {
       setIsLoading(false);
       setDisplaySignInModal(true);

@@ -75,8 +75,9 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 - [x] call `signIn.social()` via BetterAuth signIn()
   - [ ] handle success / fail
   - [ ] set auth states
-  - [ ] close modal on success
-- [ ] Gate prompt/route behind session state (`useSession()`)
+  - [x] close modal on success
+- [x] Gate prompt submission on client (`useSession()` in ChatThread)
+- [ ] Gate prompt API route on server (`getSession()` in route.ts)
 
 ### Error Handling (refactor)
 
