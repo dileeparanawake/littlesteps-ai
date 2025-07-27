@@ -19,22 +19,26 @@ type SignInModalProps = {
 };
 
 export default function SignInModal({ display, setDisplay }: SignInModalProps) {
+  // hooks
+  const {
+    data: session, //session object
+    isPending, //loading state
+    error: sessionError, //error object
+    refetch, //refetch the session
+  } = authClient.useSession();
+
+  // states
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
+  // handlers
+
   const handleSignInClick = async () => {
-    console.log('sign in hit');
+    console.log('sign in clicked');
     setIsAuthenticating(true);
-
-    signIn();
-    const { data: session, error } = await authClient.getSession();
-    if (session?.user) {
-      console.log(`User ${session.user.email} is signed in`);
-      setIsAuthenticating(false);
-      setDisplay(false);
-    }
-
-    // TODO: handle errors
+    setError(null);
+    setDisplay(true);
+    await signIn();
   };
 
   const handleBackdropClick = () => {
