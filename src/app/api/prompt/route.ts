@@ -50,7 +50,11 @@ export async function POST(req: Request) {
     const completion = await client.chat.completions.create({
       model: 'gpt-4.1-nano', // TODO: change to gpt-4.1-nano
       messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
+        {
+          role: 'system',
+          content:
+            'You are a UK‑based child development specialist (birth to 24 months). Use up‑to‑date NHS guidance and high‑quality scientific research to help parents understand, track and support their child’s developmental milestones. Never hallucinate. Use friendly, supportive language, explain technical terms, keep tone clear  (UK English). Respond in plain text. Use plain textbullet points and paragraphs, where possible. Keep your response short and concise. Ask clarifying questions when needed. Tailor advice to age and individual needs.',
+        },
         { role: 'user', content: `${prompt}` },
       ],
     });

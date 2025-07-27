@@ -4,6 +4,9 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
+# Add the native build tools needed for better-sqlite3 (remove mvs3)
+RUN apk add --no-cache python3 make g++
+
 # Install pnpm globally
 RUN npm install -g pnpm
 
@@ -12,6 +15,9 @@ COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
 RUN pnpm install
+
+# Rebuild native modules inside this environment (remove mvs3)
+RUN pnpm rebuild better-sqlite3
 
 # Copy rest of your app
 COPY . .

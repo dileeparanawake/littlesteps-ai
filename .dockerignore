@@ -41,4 +41,4 @@ next-env.d.ts
 # SQLite database
 *.db
 *.db-journal
-/better-auth_migrations
+# /better-auth_migrations

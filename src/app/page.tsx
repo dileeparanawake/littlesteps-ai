@@ -40,7 +40,7 @@ export default function ChatPage() {
 
   return (
     <div>
-      <div className="sticky top-0 z-40 flex  justify-between p-4">
+      <header className="sticky top-0 z-40 flex  justify-between p-4">
         <h1 className="text-lg font-semibold leading-none">LittleSteps AI</h1>
         {session?.user && (
           <Button
@@ -51,14 +51,14 @@ export default function ChatPage() {
             Sign Out
           </Button>
         )}
-      </div>
-      <div>
+      </header>
+      <main className="flex flex-col items-center justify-center h-screen">
         <SignInModal
           display={displaySignInModal}
           setDisplay={setDisplaySignInModal}
         />
         <ChatThread setDisplaySignInModal={setDisplaySignInModal} />
-      </div>
+      </main>
     </div>
   );
 }

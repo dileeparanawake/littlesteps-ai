@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { authClient } from '@/lib/auth-client';
 
@@ -24,7 +24,14 @@ export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
   const [response, setResponse] = useState<string>(''); // ai response value (may be array in future?)
   const [isLoading, setIsLoading] = useState<boolean>(false); // disable button for api call
   const [error, setError] = useState<null | string>(null); // handles error for api call
-
+  // effects
+  useEffect(() => {
+    const cachedPrompt = sessionStorage.getItem('savedPrompt');
+    if (cachedPrompt) {
+      setPrompt(cachedPrompt);
+      sessionStorage.removeItem('savedPrompt'); // optional cleanup
+    }
+  }, []);
   //handlers
 
   const handleInputChange = (value: string): void => {
@@ -36,6 +43,7 @@ export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
     setIsLoading(true);
 
     if (!session?.user) {
+      sessionStorage.setItem('savedPrompt', prompt);
       setIsLoading(false);
       setDisplaySignInModal(true);
       return;
@@ -82,7 +90,7 @@ export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
       {/* chat card */}
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>LittleSteps Chat</CardTitle>
+          <CardTitle>Ask LittleSteps</CardTitle>
         </CardHeader>
         <CardContent>
           {/* chat history */}
