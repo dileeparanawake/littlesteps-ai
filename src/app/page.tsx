@@ -40,13 +40,25 @@ export default function ChatPage() {
 
   return (
     <div>
-      <Button onClick={handleSignOut}>Sign Out</Button>
-      <p>text</p>
-      <SignInModal
-        display={displaySignInModal}
-        setDisplay={setDisplaySignInModal}
-      />
-      <ChatThread setDisplaySignInModal={setDisplaySignInModal} />
+      <div className="sticky top-0 z-40 flex  justify-between p-4">
+        <h1 className="text-lg font-semibold leading-none">LittleSteps AI</h1>
+        {session?.user && (
+          <Button
+            variant="link"
+            className="text-muted-foreground p-0 h-auto leading-none"
+            onClick={handleSignOut}
+          >
+            Sign Out
+          </Button>
+        )}
+      </div>
+      <div>
+        <SignInModal
+          display={displaySignInModal}
+          setDisplay={setDisplaySignInModal}
+        />
+        <ChatThread setDisplaySignInModal={setDisplaySignInModal} />
+      </div>
     </div>
   );
 }

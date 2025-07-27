@@ -73,14 +73,14 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 - [x] scaffold BetterAuth with Google provider and route handler (noDB)
 - [x] call `signIn.social()` via BetterAuth signIn()
-- [ ] update modal display state on auth success/failure
+- [x] update modal display state on auth success/failure
 - [x] close modal on success
 - [x] Gate prompt submission on client (`useSession()` in ChatThread)
 - [x] Gate prompt API route on server (`getSession()` in route.ts)
 
 ### Error Handling (refactor)
 
-- [ ] Reuse or refactor error alert UI (e.g. shared alert component)
+- [x] Reuse or refactor error alert UI (e.g. shared alert component)
 
 ### Conditional modal rendering
 
@@ -91,3 +91,5 @@ A modal that appears when a user attempts to interact with the prompt UI while n
   - [x] check session status inside chat-thread when user interacts
 
 ### UX Polish
+
+- [x] display sign out button on active session
