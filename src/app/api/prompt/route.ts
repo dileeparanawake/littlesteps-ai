@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const completion = await client.chat.completions.create({
-      model: 'gpt-4.1-nano', // TODO: change to gpt-4o-mini
+      model: 'gpt-4.1-nano', // TODO: change to gpt-4.1-nano
       messages: [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: `${prompt}` },

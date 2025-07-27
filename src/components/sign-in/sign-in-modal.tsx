@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 
 import {
   Card,
@@ -7,52 +8,51 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-
 import { Button } from '@/components/ui/button';
 
-import { useState } from 'react';
-
 import { signIn } from '@/lib/sign-in';
+import { authClient } from '@/lib/auth-client';
 
 type SignInModalProps = {
-  displaySignInModal: boolean;
-  onClose: () => void;
+  display: boolean;
+  setDisplay: (value: boolean) => void;
 };
 
-export default function SignInModal({
-  displaySignInModal,
-  onClose,
-}: SignInModalProps) {
+export default function SignInModal({ display, setDisplay }: SignInModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
   const handleSignInClick = async () => {
+    console.log('sign in hit');
     setIsAuthenticating(true);
 
-    try {
-      await signIn();
-    } catch (error) {
-      console.error(error);
+    signIn();
+    const { data: session, error } = await authClient.getSession();
+    if (session?.user) {
+      console.log(`User ${session.user.email} is signed in`);
+      setIsAuthenticating(false);
+      setDisplay(false);
     }
 
-    // TODO: signIn.social() via BetterAuth in integration step
     // TODO: handle errors
-    onClose();
   };
 
   const handleBackdropClick = () => {
     setError(null);
     setIsAuthenticating(false);
-    onClose();
+    setDisplay(false);
   };
 
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50"
-      hidden={!displaySignInModal} // TODO: update to use !displaySignInModal
+      hidden={!display} // TODO: update to use !displaySignInModal
       onClick={handleBackdropClick}
     >
-      <Card className="w-full max-w-sm shadow-lg">
+      <Card
+        className="w-full max-w-sm shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
           <CardDescription>Please sign in to continue</CardDescription>

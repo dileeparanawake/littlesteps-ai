@@ -72,7 +72,7 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 ### Wire Up OAuth via BetterAuth
 
 - [x] scaffold BetterAuth with Google provider and route handler (noDB)
-- [ ] call `signIn.social()` via BetterAuth
+- [x] call `signIn.social()` via BetterAuth signIn()
   - [ ] handle success / fail
   - [ ] set auth states
   - [ ] close modal on success
@@ -82,9 +82,11 @@ A modal that appears when a user attempts to interact with the prompt UI while n
 
 - [ ] Reuse or refactor error alert UI (e.g. shared alert component)
 
-### Conditional rendering
+### Conditional modal rendering
 
 - [ ] hide modal default
 - [ ] if user click's 'ask' display if user is unauthenticated
+- [ ] hide modal if user clicks backdrop
+- [ ] check session status inside chat-thread when user interacts
 
 ### UX Polish

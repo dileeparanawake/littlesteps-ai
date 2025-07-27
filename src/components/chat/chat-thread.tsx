@@ -1,15 +1,25 @@
 'use client';
+import { useState } from 'react';
+
+import { authClient } from '@/lib/auth-client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatHistory } from '@/components/chat/chat-history';
 import { ChatInput } from '@/components/chat/chat-input';
 
-import { useState } from 'react';
-
-export function ChatThread() {
-  // state
-
-  // consider message history state array
+type ChatThreadProps = {
+  setDisplaySignInModal: (value: boolean) => void;
+};
+export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
+  // hooks
+  const {
+    data: session,
+    isPending, //loading state
+    error: sessionError, //error object
+    refetch, //refetch the session
+  } = authClient.useSession();
+  // states
+  // NOTE:consider message history state array
   const [prompt, setPrompt] = useState<string>(''); // prompt is the input value (may be array in future?)
   const [response, setResponse] = useState<string>(''); // ai response value (may be array in future?)
   const [isLoading, setIsLoading] = useState<boolean>(false); // disable button for api call
@@ -23,14 +33,21 @@ export function ChatThread() {
   };
 
   const handleSubmit = async (): Promise<void> => {
+    setIsLoading(true);
+    if (!session?.user) {
+      setIsLoading(false);
+      setDisplaySignInModal(true);
+      return;
+    }
+
     if (!prompt.trim()) {
       console.log(`Whitespace validation:[${prompt}]`, `[${prompt.trim()}]`);
       setError('Please enter a prompt.');
+      setIsLoading(false);
       return;
     }
 
     // handle submit > api call
-    setIsLoading(true);
 
     try {
       const response = await fetch('/api/prompt', {
