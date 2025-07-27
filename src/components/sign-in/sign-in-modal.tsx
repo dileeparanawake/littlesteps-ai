@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ErrorAlert } from '@/components/ui/error-alert';
 
 import { signIn } from '@/lib/sign-in';
 import { authClient } from '@/lib/auth-client';
@@ -30,6 +31,15 @@ export default function SignInModal({ display, setDisplay }: SignInModalProps) {
   // states
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+
+  // effects
+  useEffect(() => {
+    // If the modal is open, and we finished loading, and there's no session — show error
+    if (!isPending && sessionError) {
+      setError('Sign-in failed. Please try again.');
+      console.log('Sign in error:', sessionError);
+    }
+  }, [isPending, sessionError]);
 
   // handlers
 
@@ -62,6 +72,9 @@ export default function SignInModal({ display, setDisplay }: SignInModalProps) {
           <CardDescription>Please sign in to continue</CardDescription>
         </CardHeader>
         <CardContent>
+          {sessionError && (
+            <ErrorAlert error={'Sign In Error please try again'} />
+          )}
           <Button
             className="w-full"
             disabled={isAuthenticating}

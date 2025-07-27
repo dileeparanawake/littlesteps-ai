@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ErrorAlert } from '@/components/ui/error-alert';
 
 type ChatInputProps = {
   prompt: string;
@@ -22,14 +22,7 @@ export function ChatInput({
   return (
     <div>
       {/* error alert */}
-      {error && (
-        <div className="mb-2">
-          <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </div>
-      )}
+      {error && <ErrorAlert error={error} />}
       <div className="flex items-center bg-muted rounded-lg px-2 py-1 shadow-sm">
         <Input
           type="text"
