@@ -4,11 +4,11 @@ Full-stack AI milestone tracker for parents — built with Next.js, Docker, and 
 
 A secure, containerized LLM interface for developmental guidance. Each feature is delivered as a vertical slice (MVS) [read MVS blog post](https://dileeparanawake.com/minimum-viable-slice) to showcase real-world planning, devops, and full-stack skills.
 
-[Project Kanban](https://github.com/users/dileeparanawake/projects/4/views/1)
+[Project Kanban Board](https://github.com/users/dileeparanawake/projects/4/views/1)
 
-## Screenshot: MVS 2 Complete: Next.js Prompt Interface + Docker Compose Setup, Google OAuth.
+## Demo: MVS 2 Complete: Next.js Prompt Interface + Docker Compose Setup, Google OAuth.
 
-![LittleSteps AI Screenshot MVS2 Complete](./public/screenshots/littlesteps_screenshot_2025-07-27_MVS2_complete.gif)
+![LittleSteps AI Demo MVS2 Complete](./public/screenshots/littlesteps_screenshot_2025-07-27_MVS2_complete.gif)
 
 Simple frontend + backend OpenAI integration, containerized for local development, using Google OAuth via BetterAuth.js. Using SQLite DB for persistance.
 
