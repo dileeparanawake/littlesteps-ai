@@ -18,9 +18,9 @@ services:
     container_name: littlesteps-db
     restart: always
     environment:
-      POSTGRES_DB: littlesteps
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${PGDATABASE}
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
     ports:
       - '5432:5432'
     volumes:
