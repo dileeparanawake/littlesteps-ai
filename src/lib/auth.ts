@@ -20,8 +20,13 @@ import * as schema from '@/db/schema';
 //   },
 // });
 
+console.log('DB URL:', process.env.DATABASE_URL);
+
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: 'pg', schema }),
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema,
+  }),
   emailAndPassword: {
     enabled: false,
   },

@@ -6,6 +6,7 @@ import {
   integer,
 } from 'drizzle-orm/pg-core';
 
+// Schema tables required by Better Auth adapter (user, session, account, verification)
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
