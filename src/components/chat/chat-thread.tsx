@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChatHistory } from '@/components/chat/chat-history';
+import { MessageList } from '@/components/chat/message-list';
 import { ChatInput } from '@/components/chat/chat-input';
 
 type ChatThreadProps = {
@@ -88,10 +88,8 @@ export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
           <CardTitle>Ask LittleSteps</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* chat history */}
-          <ChatHistory response={response} />
+          <MessageList response={response} />
 
-          {/* chat input area */}
           <ChatInput
             onPromptChange={handleInputChange}
             prompt={prompt}

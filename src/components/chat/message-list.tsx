@@ -1,10 +1,10 @@
 'use client';
 
-type ChatHistoryProps = {
+type MessageListProps = {
   response: string;
 };
 
-export function ChatHistory({ response }: ChatHistoryProps) {
+export function MessageList({ response }: MessageListProps) {
   return (
     <div className="p-4 space-y-3">
       <div className="flex justify-end">
