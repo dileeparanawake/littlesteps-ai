@@ -6,12 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "./scripts/wait-for-postgres-and-migrate.sh",
+    "reset": "docker-compose down -v --remove-orphans && docker-compose build --no-cache && docker-compose up -d",
+    "reset:migrate": "pnpm reset && pnpm migrate"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
     "better-auth": "^1.3.4",
-    "better-sqlite3": "^12.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.1",
@@ -28,7 +30,6 @@
     "@better-auth/cli": "^1.3.4",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/pg": "^8.15.5",
     "@types/react": "^19",

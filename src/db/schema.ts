@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  integer,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
 
 // Schema tables required by Better Auth adapter (user, session, account, verification)
 export const user = pgTable('user', {

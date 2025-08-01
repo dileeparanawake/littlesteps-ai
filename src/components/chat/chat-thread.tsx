@@ -12,12 +12,7 @@ type ChatThreadProps = {
 };
 export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
   // hooks
-  const {
-    data: session,
-    isPending, //loading state
-    error: sessionError, //error object
-    refetch, //refetch the session
-  } = authClient.useSession();
+  const { data: session } = authClient.useSession();
   // states
   // NOTE:consider message history state array
   const [prompt, setPrompt] = useState<string>(''); // prompt is the input value (may be array in future?)

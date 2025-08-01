@@ -14,7 +14,6 @@ export default function ChatPage() {
     data: session,
     isPending,
     error: sessionError,
-    refetch,
   } = authClient.useSession();
 
   // states
@@ -30,7 +29,7 @@ export default function ChatPage() {
       console.log(`isPending: ${isPending}`);
       console.log(`sessionError: ${sessionError}`);
     }
-  }, [isPending, sessionError]);
+  }, [isPending, sessionError, session?.user]);
 
   // handlers
   const handleSignOut = async (): Promise<void> => {

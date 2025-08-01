@@ -22,10 +22,8 @@ type SignInModalProps = {
 export default function SignInModal({ display, setDisplay }: SignInModalProps) {
   // hooks
   const {
-    data: session, //session object
     isPending, //loading state
     error: sessionError, //error object
-    refetch, //refetch the session
   } = authClient.useSession();
 
   // states
@@ -72,9 +70,7 @@ export default function SignInModal({ display, setDisplay }: SignInModalProps) {
           <CardDescription>Please sign in to continue</CardDescription>
         </CardHeader>
         <CardContent>
-          {sessionError && (
-            <ErrorAlert error={'Sign In Error please try again'} />
-          )}
+          {sessionError && <ErrorAlert error={error} />}
           <Button
             className="w-full"
             disabled={isAuthenticating}
