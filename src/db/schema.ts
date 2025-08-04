@@ -1,4 +1,13 @@
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+} from 'drizzle-orm/pg-core';
+
+import { messageRole } from './enums';
+import crypto from 'node:crypto';
 
 // Schema tables required by Better Auth adapter (user, session, account, verification)
 export const user = pgTable('user', {
@@ -59,4 +68,33 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').$defaultFn(
     () => /* @__PURE__ */ new Date(),
   ),
+});
+
+// Chat Threads
+export const thread = pgTable('thread', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  title: text('title'),
+  createdAt: timestamp('created_at').$defaultFn(() => new Date()),
+  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()),
+});
+
+export const message = pgTable('message', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  threadId: text('thread_id')
+    .notNull()
+    .references(() => thread.id, { onDelete: 'cascade' }),
+  sequence: integer('sequence').notNull(), // TODO: sequence generation
+  role: messageRole('role').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').$defaultFn(() => new Date()),
+  promptTokens: integer('prompt_tokens'),
+  completionTokens: integer('completion_tokens'),
+  totalTokens: integer('total_tokens'),
 });

@@ -1,9 +1,3 @@
-// TODO: accept POST with {message: string}
-// TODO: validate input - body has a message: string OR returns 404
-// TODO: make fake response { response: "..." }
-// TODO: return response
-// TODO: test locally using postman
-
 import { NextResponse } from 'next/server';
 
 import { OpenAI } from 'openai';
