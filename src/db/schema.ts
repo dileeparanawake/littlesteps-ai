@@ -4,6 +4,7 @@ import {
   timestamp,
   boolean,
   integer,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 import { messageRole } from './enums';
@@ -83,18 +84,23 @@ export const thread = pgTable('thread', {
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()),
 });
 
-export const message = pgTable('message', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  threadId: text('thread_id')
-    .notNull()
-    .references(() => thread.id, { onDelete: 'cascade' }),
-  sequence: integer('sequence').notNull(), // TODO: sequence generation
-  role: messageRole('role').notNull(),
-  content: text('content').notNull(),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()),
-  promptTokens: integer('prompt_tokens'),
-  completionTokens: integer('completion_tokens'),
-  totalTokens: integer('total_tokens'),
-});
+export const message = pgTable(
+  'message',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    threadId: text('thread_id')
+      .notNull()
+      .references(() => thread.id, { onDelete: 'cascade' }),
+    sequence: integer('sequence').notNull(), // TODO: sequence generation
+    role: messageRole('role').notNull(),
+    // role: text('role').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at').$defaultFn(() => new Date()),
+    promptTokens: integer('prompt_tokens'),
+    completionTokens: integer('completion_tokens'),
+    totalTokens: integer('total_tokens'),
+  },
+  (t) => [unique('thread_sequence_unique').on(t.threadId, t.sequence)],
+);
