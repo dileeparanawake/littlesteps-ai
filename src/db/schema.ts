@@ -94,7 +94,7 @@ export const message = pgTable(
       .notNull()
       .references(() => thread.id, { onDelete: 'cascade' }),
     sequence: integer('sequence').notNull(), // TODO: sequence generation
-    role: messageRole('role').notNull(),
+    role: messageRole('role').notNull(), // system | user | assistant
     // role: text('role').notNull(),
     content: text('content').notNull(),
     createdAt: timestamp('created_at').$defaultFn(() => new Date()),

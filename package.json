@@ -11,7 +11,8 @@
     "migrate": "./scripts/wait-for-postgres-and-migrate.sh",
     "reset": "docker-compose down -v --remove-orphans && docker-compose build --no-cache && docker-compose up -d",
     "reset:db": "pnpm reset && pnpm generate && pnpm migrate",
-    "docker:shell": "docker exec -it littlesteps-dev sh"
+    "docker:shell": "docker exec -it littlesteps-dev sh",
+    "docker:psql": "docker run -it --network littlesteps-ai_default postgres psql -h db -U postgres -d littlesteps"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
