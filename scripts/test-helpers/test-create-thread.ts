@@ -2,11 +2,11 @@ import { createThread } from '@/lib/chat/create-thread';
 import { db } from '@/db/index';
 import { user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { testUserId } from './test-create-user';
+import { testUserId } from './create-test-user';
 
 // Simulated input
 
-const title = 'Test Thread';
+const title = 'Thread Test Title';
 
 console.log('\n\nDATABASE_URL:', process.env.DATABASE_URL);
 
