@@ -1,5 +1,5 @@
 {
-  "id": "98f328f8-e1c0-4a75-b2a8-7d0b74e860e7",
+  "id": "a901b409-e90c-4343-a31f-0e96a285628e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -115,13 +115,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "thread_id": {
           "name": "thread_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -133,7 +134,8 @@
         },
         "role": {
           "name": "role",
-          "type": "text",
+          "type": "message_role",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -288,9 +290,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "user_id": {
           "name": "user_id",

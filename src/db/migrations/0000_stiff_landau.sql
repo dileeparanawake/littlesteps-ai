@@ -16,10 +16,10 @@ CREATE TABLE "account" (
 );
 --> statement-breakpoint
 CREATE TABLE "message" (
-	"id" text PRIMARY KEY NOT NULL,
-	"thread_id" text NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"thread_id" uuid NOT NULL,
 	"sequence" integer NOT NULL,
-	"role" text NOT NULL,
+	"role" "message_role" NOT NULL,
 	"content" text NOT NULL,
 	"created_at" timestamp,
 	"prompt_tokens" integer,
@@ -41,7 +41,7 @@ CREATE TABLE "session" (
 );
 --> statement-breakpoint
 CREATE TABLE "thread" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"title" text,
 	"created_at" timestamp,

@@ -5,10 +5,10 @@ import {
   boolean,
   integer,
   unique,
+  uuid,
 } from 'drizzle-orm/pg-core';
 
 import { messageRole } from './enums';
-import crypto from 'node:crypto';
 
 // Schema tables required by Better Auth adapter (user, session, account, verification)
 export const user = pgTable('user', {
@@ -73,9 +73,7 @@ export const verification = pgTable('verification', {
 
 // Chat Threads
 export const thread = pgTable('thread', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: uuid('id').defaultRandom().primaryKey(),
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
@@ -87,10 +85,8 @@ export const thread = pgTable('thread', {
 export const message = pgTable(
   'message',
   {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    threadId: text('thread_id')
+    id: uuid('id').defaultRandom().primaryKey(),
+    threadId: uuid('thread_id')
       .notNull()
       .references(() => thread.id, { onDelete: 'cascade' }),
     sequence: integer('sequence').notNull(), // TODO: sequence generation

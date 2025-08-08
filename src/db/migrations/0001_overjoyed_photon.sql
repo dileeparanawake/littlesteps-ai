@@ -1,1 +1,0 @@
-ALTER TABLE "message" ALTER COLUMN "role" SET DATA TYPE "public"."message_role" USING "role"::"public"."message_role";
