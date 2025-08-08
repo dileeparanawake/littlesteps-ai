@@ -1,18 +1,14 @@
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-
-type TestUser = {
-  id?: string;
-  name?: string;
-  email?: string;
-};
+import { testUser } from './test-data';
+import { TestUser } from './test-types';
 
 export async function createTestUser({
-  id = 'user-id-123',
-  name = 'Test User',
-  email = 'test@example.com',
-}: TestUser) {
+  id = testUser.id,
+  name = testUser.name,
+  email = testUser.email,
+}: TestUser = testUser) {
   try {
     // Delete any existing user with this ID
     await db.delete(user).where(eq(user.id, id));

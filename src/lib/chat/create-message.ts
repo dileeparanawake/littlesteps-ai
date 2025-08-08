@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { message } from '@/db/schema';
-import { validateRequiredFields } from '@/lib/utils';
+import { throwIfMissingFields, throwIfThreadDoesNotExist } from '@/lib/utils';
 import { MessageRole } from '@/db/enums';
 
 export async function createMessage(
@@ -9,7 +9,8 @@ export async function createMessage(
   role: MessageRole,
   content: string,
 ) {
-  validateRequiredFields({ threadId, sequence, role, content });
+  throwIfMissingFields({ threadId, sequence, role, content });
+  await throwIfThreadDoesNotExist(threadId);
 
   const [newMessage] = await db
     .insert(message)

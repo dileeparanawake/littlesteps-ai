@@ -1,9 +1,13 @@
 import { db } from '@/db/index';
 import { thread } from '@/db/schema';
-import { validateRequiredFields } from '@/lib/utils';
+import { throwIfMissingFields, throwIfUserDoesNotExist } from '@/lib/utils';
 
-export async function createThread(userId: string, title?: string) {
-  validateRequiredFields({ userId, title });
+export async function createThread(
+  userId: string,
+  title: string = 'Untitled Thread',
+) {
+  throwIfMissingFields({ userId });
+  await throwIfUserDoesNotExist(userId);
 
   const [newThread] = await db
     .insert(thread)

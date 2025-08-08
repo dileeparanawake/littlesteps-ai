@@ -17,7 +17,7 @@ describe('Create User', () => {
   });
 
   it('creates a user with default values', async () => {
-    const createdUser = await createTestUser({});
+    const createdUser = await createTestUser();
     expect(createdUser).toMatchObject(testUser);
 
     const [createdUserDB] = await db
