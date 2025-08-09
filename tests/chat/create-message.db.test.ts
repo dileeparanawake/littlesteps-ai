@@ -1,21 +1,23 @@
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/db';
-import { thread, message } from '@/db/schema';
+import { message } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { createThread } from '@/lib/chat/create-thread';
 import { createMessage } from '@/lib/chat/create-message';
 import { wipeDB } from '../helpers/wipe-db';
 import { createTestUser } from '../helpers/create-test-user';
-import { testUser } from '../helpers/test-data';
+import { makeTestUser } from '../helpers/test-data';
 
-describe('createMessage', () => {
+const testUser = makeTestUser();
+
+describe.sequential('createMessage', () => {
   beforeAll(async () => {
     // global setup for this suite
   });
 
   beforeEach(async () => {
     await wipeDB();
-    await createTestUser();
+    await createTestUser(testUser);
   });
 
   afterAll(async () => {

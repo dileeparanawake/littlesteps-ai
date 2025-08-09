@@ -4,10 +4,10 @@ import { db } from '@/db';
 import { user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { viewTables } from '../helpers/view-tables';
-import { testUser } from '../helpers/test-data';
+import { makeTestUser } from '../helpers/test-data';
 import { wipeDB } from '../helpers/wipe-db';
 
-describe('Create User', () => {
+describe.sequential('Create User', () => {
   beforeEach(async () => {
     await wipeDB();
   });
@@ -17,7 +17,8 @@ describe('Create User', () => {
   });
 
   it('creates a user with default values', async () => {
-    const createdUser = await createTestUser();
+    const testUser = makeTestUser();
+    const createdUser = await createTestUser(testUser);
     expect(createdUser).toMatchObject(testUser);
 
     const [createdUserDB] = await db

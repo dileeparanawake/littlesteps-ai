@@ -8,7 +8,15 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     globals: true,
-    environment: 'node', // TODO: seperate out config to vitest.config.frontend.ts and use something like JSDOM for and install jest-dom for frontend tests
+    environment: 'node',
     include: ['tests/**/*.test.ts'],
+    setupFiles: ['./tests/setup.ts'],
+    // runs tests sequentially
+    pool: 'threads',
+    poolOptions: {
+      threads: { minThreads: 1, maxThreads: 1 },
+    },
+    // runs tests in files sequentially
+    sequence: { concurrent: false },
   },
 });

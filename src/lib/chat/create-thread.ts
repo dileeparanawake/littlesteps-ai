@@ -1,6 +1,7 @@
 import { db } from '@/db/index';
 import { thread } from '@/db/schema';
-import { throwIfMissingFields, throwIfUserDoesNotExist } from '@/lib/utils';
+import { throwIfUserDoesNotExist } from '@/db/guards';
+import { throwIfMissingFields } from '@/lib/validation';
 
 export async function createThread(
   userId: string,

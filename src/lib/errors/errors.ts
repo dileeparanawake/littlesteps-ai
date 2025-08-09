@@ -2,6 +2,7 @@
 export class AppError extends Error {
   readonly code: string;
   readonly status: number;
+  declare cause?: unknown;
 
   constructor(
     message: string,
@@ -12,10 +13,8 @@ export class AppError extends Error {
     this.code = opts?.code ?? 'APP_ERROR';
     this.status = opts?.status ?? 500;
     if (opts?.cause) {
-      // optional, nice to have for chaining
-      // @ts-ignore - Node only, harmless elsewhere
       Error.captureStackTrace?.(this, new.target);
-      (this as any).cause = opts.cause;
+      this.cause = opts.cause;
     }
   }
 }

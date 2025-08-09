@@ -1,7 +1,8 @@
 import { db } from '@/db';
 import { message } from '@/db/schema';
-import { throwIfMissingFields, throwIfThreadDoesNotExist } from '@/lib/utils';
+import { throwIfThreadDoesNotExist } from '@/db/guards';
 import { MessageRole } from '@/db/enums';
+import { throwIfMissingFields } from '@/lib/validation';
 
 export async function createMessage(
   threadId: string,

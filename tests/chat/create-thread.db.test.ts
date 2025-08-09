@@ -5,16 +5,18 @@ import { eq } from 'drizzle-orm';
 import { createThread } from '@/lib/chat/create-thread';
 import { wipeDB } from '../helpers/wipe-db';
 import { createTestUser } from '../helpers/create-test-user';
-import { testUser } from '../helpers/test-data';
+import { makeTestUser } from '../helpers/test-data';
 
-describe('createThread', () => {
+const testUser = makeTestUser();
+
+describe.sequential('createThread', () => {
   beforeAll(async () => {
-    // global setup for this suite
+    await wipeDB();
   });
 
   beforeEach(async () => {
     await wipeDB();
-    await createTestUser();
+    await createTestUser(testUser);
   });
 
   afterAll(async () => {
