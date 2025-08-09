@@ -12,7 +12,7 @@ const testUser = makeTestUser();
 
 describe.sequential('createMessage', () => {
   beforeAll(async () => {
-    // global setup for this suite
+    await wipeDB();
   });
 
   beforeEach(async () => {
