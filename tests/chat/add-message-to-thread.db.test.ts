@@ -11,13 +11,6 @@ import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
 
 const testUser = makeTestUser();
 
-// TODO: add tests for:
-// throw error no thread id
-// throw error no role / content
-// throw error if role is system
-// throw error if same sequence number exists
-// sequence correct for multiple messages
-
 describe.sequential('addMessageToThread', () => {
   beforeAll(async () => {
     await wipeDB();
@@ -32,7 +25,7 @@ describe.sequential('addMessageToThread', () => {
     await wipeDB();
   });
 
-  it('should add a message to a thread', async () => {
+  it('should add new message to a thread', async () => {
     const newThread = await createThread(testUser.id);
     const role = 'user';
     const content = 'Hello, world!';
@@ -53,7 +46,7 @@ describe.sequential('addMessageToThread', () => {
       content: content,
     });
   });
-  it('should add a system message to a thread', async () => {
+  it('should add a system message at sequence 0', async () => {
     const newThread = await createThread(testUser.id);
     const role = 'user';
     const content = 'Hello, world!';
@@ -69,5 +62,55 @@ describe.sequential('addMessageToThread', () => {
     expect(rows[0].role).toBe('system');
     expect(rows[0].content).toBe(SYSTEM_MESSAGE);
     expect(rows[1].role).toBe(role);
+  });
+  it('adds fourth message at sequence 4', async () => {
+    const newThread = await createThread(testUser.id);
+
+    const messages = [
+      { threadId: newThread.id, role: 'user', content: 'First message' },
+      { threadId: newThread.id, role: 'assistant', content: 'Second message' },
+      { threadId: newThread.id, role: 'user', content: 'Third message' },
+      { threadId: newThread.id, role: 'assistant', content: 'Fourth message' },
+    ] as const;
+
+    for (const message of messages) {
+      await addMessageToThread(message.threadId, message.role, message.content);
+    }
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.threadId, newThread.id));
+
+    expect(rows).toHaveLength(5);
+    expect(rows[0].sequence).toBe(0);
+    expect(rows[1].sequence).toBe(1);
+    expect(rows[2].sequence).toBe(2);
+    expect(rows[3].sequence).toBe(3);
+    expect(rows[4].sequence).toBe(4);
+    expect(rows[4].content).toBe('Fourth message');
+  });
+  it('throws error if thread does not exist', async () => {
+    const threadId = '123';
+    const role = 'user';
+    const content = 'Hello, world!';
+
+    await expect(addMessageToThread(threadId, role, content)).rejects.toThrow();
+  });
+  it('throws error for invalid role', async () => {
+    const newThread = await createThread(testUser.id);
+
+    const content = 'Hello, world!';
+
+    await expect(
+      addMessageToThread(newThread.id, 'system' as unknown as any, content),
+    ).rejects.toThrow();
+  });
+  it('throws error if content is empty', async () => {
+    const newThread = await createThread(testUser.id);
+
+    await expect(
+      addMessageToThread(newThread.id, 'user', ''),
+    ).rejects.toThrow();
   });
 });

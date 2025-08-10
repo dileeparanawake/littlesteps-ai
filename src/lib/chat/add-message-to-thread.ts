@@ -27,6 +27,10 @@ export async function addMessageToThread(
   throwIfMissingFields({ threadId, role, content });
   await throwIfThreadDoesNotExist(threadId);
 
+  if ((role as MessageRole) === 'system') {
+    throw new Error('System messages are not allowed');
+  }
+
   const nextSequence = await generateNextSequence(threadId);
 
   if (nextSequence === 0) {
