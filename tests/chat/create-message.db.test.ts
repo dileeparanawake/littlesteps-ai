@@ -11,15 +11,16 @@ import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
 
 const testUser = makeTestUser();
 
+// test createMessage - creates a new message in a thread
 describe.sequential('createMessage', () => {
   beforeAll(async () => {
     await wipeDB();
-  });
-
-  beforeEach(async () => {
-    await wipeDB();
     await createTestUser(testUser);
   });
+
+  // beforeEach(async () => {
+  //   await wipeDB();
+  // });
 
   afterAll(async () => {
     await wipeDB();
