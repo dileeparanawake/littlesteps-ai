@@ -1,5 +1,6 @@
 import { describe, it, expect, afterAll, beforeEach, beforeAll } from 'vitest';
-import { addMessageToThread } from '@/lib/chat/add-message-to-thread';
+// import { addMessageToThread } from '@/lib/chat/add-message-to-thread';
+import { addMessageToThread } from '@/lib/chat/create-message';
 import { wipeDB } from '../helpers/wipe-db';
 import { createTestUser } from '../helpers/create-test-user';
 import { makeTestUser } from '../helpers/test-data';

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "check:all": "tsc --noEmit && echo '✓ TypeScript: no errors' && next lint --max-warnings=0 && next build",
+    "watch": "tsc --watch",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
