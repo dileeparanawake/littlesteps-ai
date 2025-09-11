@@ -14,18 +14,15 @@ import { ErrorAlert } from '@/components/ui/error-alert';
 import { signIn } from '@/lib/sign-in';
 import { authClient } from '@/lib/auth-client';
 
-type SignInModalProps = {
-  display: boolean;
-  setDisplay: (value: boolean) => void;
-};
+import { useModal } from '@/components/layout/ModalProvider';
 
-export default function SignInModal({ display, setDisplay }: SignInModalProps) {
+export default function SignInModal() {
   // hooks
   const {
     isPending, //loading state
     error: sessionError, //error object
   } = authClient.useSession();
-
+  const { showSignIn, setShowSignIn } = useModal();
   // states
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
@@ -45,20 +42,22 @@ export default function SignInModal({ display, setDisplay }: SignInModalProps) {
     console.log('sign in clicked');
     setIsAuthenticating(true);
     setError(null);
-    setDisplay(true);
+    setShowSignIn(true);
     await signIn();
   };
 
   const handleBackdropClick = () => {
     setError(null);
     setIsAuthenticating(false);
-    setDisplay(false);
+    setShowSignIn(false);
   };
+
+  const hide = !showSignIn;
 
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50"
-      hidden={!display} // TODO: update to use !displaySignInModal
+      hidden={hide} // TODO: update to use !displaySignInModal
       onClick={handleBackdropClick}
     >
       <Card

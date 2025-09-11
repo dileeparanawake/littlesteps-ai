@@ -6,13 +6,12 @@ import { authClient } from '@/lib/auth-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
+import { useModal } from '@/components/layout/ModalProvider';
 
-type ChatThreadProps = {
-  setDisplaySignInModal: (value: boolean) => void;
-};
-export default function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
+export default function ChatThread() {
   // hooks
   const { data: session } = authClient.useSession();
+  const { setShowSignIn } = useModal();
   // states
   // NOTE:consider message history state array
   const [prompt, setPrompt] = useState<string>(''); // prompt is the input value (may be array in future?)
@@ -40,7 +39,7 @@ export default function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
     if (!session?.user) {
       sessionStorage.setItem('savedPrompt', prompt);
       setIsLoading(false);
-      setDisplaySignInModal(true);
+      setShowSignIn(true);
       return;
     }
 
