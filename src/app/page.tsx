@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { ChatThread } from '@/components/chat/chat-thread';
+import { ChatThread } from '@/components/chat/ChatThread';
 import SignInModal from '@/components/sign-in/sign-in-modal';
 
 import { authClient } from '@/lib/auth-client';

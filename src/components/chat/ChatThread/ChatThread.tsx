@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageList } from '@/components/chat/message-list';
-import { ChatInput } from '@/components/chat/chat-input';
+import { MessageList } from '@/components/chat/ChatThread/MessageList';
+import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
 
 type ChatThreadProps = {
   setDisplaySignInModal: (value: boolean) => void;
 };
-export function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
+export default function ChatThread({ setDisplaySignInModal }: ChatThreadProps) {
   // hooks
   const { data: session } = authClient.useSession();
   // states
