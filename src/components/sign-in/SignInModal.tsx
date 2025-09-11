@@ -36,6 +36,13 @@ export default function SignInModal() {
     }
   }, [isPending, sessionError]);
 
+  useEffect(() => {
+    if (!showSignIn) {
+      setError(null);
+      setIsAuthenticating(false);
+    }
+  }, [showSignIn]);
+
   // handlers
 
   const handleSignInClick = async () => {
