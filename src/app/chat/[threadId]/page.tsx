@@ -1,5 +1,3 @@
-'use client';
-
 import { ChatThread } from '@/components/chat/ChatThread';
 
 export default function ThreadPage({
@@ -9,7 +7,7 @@ export default function ThreadPage({
 }) {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <ChatThread /* threadId={params.threadId} */ />
+      <ChatThread threadId={params.threadId} />
     </div>
   );
 }

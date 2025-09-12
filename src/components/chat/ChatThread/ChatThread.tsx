@@ -6,9 +6,14 @@ import { authClient } from '@/lib/auth-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
+import { Separator } from '@/components/ui/separator';
 import { useModal } from '@/components/layout/ModalProvider';
 
-export default function ChatThread() {
+type ChatThreadProps = {
+  threadId?: string;
+};
+
+export default function ChatThread({ threadId }: ChatThreadProps) {
   // hooks
   const { data: session } = authClient.useSession();
   const { setShowSignIn } = useModal();
@@ -80,24 +85,40 @@ export default function ChatThread() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto min-h-screen flex items-center justify-center">
-      {/* chat card */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Ask LittleSteps</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MessageList response={response} />
+    // <div className="w-full max-w-xl mx-auto min-h-screen flex items-center justify-center">
+    //   {/* chat card */}
+    //   <Card className="w-full">
+    //     <CardHeader>
+    //       <CardTitle>Chat Title</CardTitle>
+    //     </CardHeader>
+    //     <CardContent>
+    //       <MessageList response={response} />
 
-          <ChatInput
-            onPromptChange={handleInputChange}
-            prompt={prompt}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            error={error}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    //       <ChatInput
+    //         onPromptChange={handleInputChange}
+    //         prompt={prompt}
+    //         onSubmit={handleSubmit}
+    //         isLoading={isLoading}
+    //         error={error}
+    //       />
+    //     </CardContent>
+    //   </Card>
+    // </div>
+    <section
+      id="chat-thread"
+      aria-labelledby="thread-title"
+      className="flex h-full flex-col"
+    >
+      <header className="sticky top-0 ...">
+        <h2 id="thread-title" className="text-sm text-muted-foreground">
+          {threadId ? 'Untitled Thread' : 'New chat'}
+          <Separator />
+        </h2>
+      </header>
+
+      <div className="flex-1 overflow-auto">…messages…</div>
+
+      <footer className="border-t">…input…</footer>
+    </section>
   );
 }
