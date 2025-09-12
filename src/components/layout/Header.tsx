@@ -46,7 +46,7 @@ export default function Header() {
   const disabled = isPending || isSigningOut;
 
   return (
-    <header className="sticky top-0 z-40 flex justify-between p-4">
+    <header className="sticky top-0 z-50 flex justify-between items-center p-4 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-">
       <h1 className="text-lg font-semibold leading-none">LittleSteps AI</h1>
       <Button
         variant="link"

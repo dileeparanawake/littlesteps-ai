@@ -20,10 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="h-screen overflow-hidden">
         <ModalProvider>
           <Header />
-          {children}
+          <div className="h-[calc(100vh-73px)] overflow-hidden">{children}</div>
         </ModalProvider>
       </body>
     </html>

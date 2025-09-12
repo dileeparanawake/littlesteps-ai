@@ -85,33 +85,14 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   };
 
   return (
-    // <div className="w-full max-w-xl mx-auto min-h-screen flex items-center justify-center">
-    //   {/* chat card */}
-    //   <Card className="w-full">
-    //     <CardHeader>
-    //       <CardTitle>Chat Title</CardTitle>
-    //     </CardHeader>
-    //     <CardContent>
-    //       <MessageList response={response} />
-
-    //       <ChatInput
-    //         onPromptChange={handleInputChange}
-    //         prompt={prompt}
-    //         onSubmit={handleSubmit}
-    //         isLoading={isLoading}
-    //         error={error}
-    //       />
-    //     </CardContent>
-    //   </Card>
-    // </div>
     <section
       id="chat-thread"
       aria-labelledby="thread-title"
       className="flex h-full flex-col"
     >
-      {/* Header (sticky) */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto w-full max-w-3xl px-4 py-3">
+      {/* Header (fixed at top) */}
+      <header className="flex-shrink-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="w-full max-w-3xl px-4 py-3">
           <h2
             id="thread-title"
             className="text-sm font-medium text-muted-foreground"
@@ -122,9 +103,26 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
         <Separator />
       </header>
 
-      <div className="flex-1 overflow-auto">…messages…</div>
+      {/* Messages (scrollable middle section) */}
+      <div id="message-list" className="flex-1 overflow-y-auto min-h-0">
+        <div className="mx-auto w-full max-w-3xl px-4 py-4">
+          {/* TODO: render messages; ephemeral empty state if none */}
+          <MessageList response={response} />
+        </div>
+      </div>
 
-      <footer className="border-t">…input…</footer>
+      {/* Input dock (fixed at bottom) */}
+      <footer className="flex-shrink-0 bg-background">
+        <div className="mx-auto w-full max-w-3xl px-4 py-3">
+          <ChatInput
+            onPromptChange={handleInputChange}
+            prompt={prompt}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            error={error}
+          />
+        </div>
+      </footer>
     </section>
   );
 }
