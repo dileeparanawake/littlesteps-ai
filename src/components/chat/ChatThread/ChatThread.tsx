@@ -109,11 +109,17 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       aria-labelledby="thread-title"
       className="flex h-full flex-col"
     >
-      <header className="sticky top-0 ...">
-        <h2 id="thread-title" className="text-sm text-muted-foreground">
-          {threadId ? 'Untitled Thread' : 'New chat'}
-          <Separator />
-        </h2>
+      {/* Header (sticky) */}
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto w-full max-w-3xl px-4 py-3">
+          <h2
+            id="thread-title"
+            className="text-sm font-medium text-muted-foreground"
+          >
+            {threadId ? 'Untitled thread' : 'New chat'}
+          </h2>
+        </div>
+        <Separator />
       </header>
 
       <div className="flex-1 overflow-auto">…messages…</div>
