@@ -58,7 +58,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     // handle submit > api call
 
     try {
-      const response = await fetch('/api/prompt', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

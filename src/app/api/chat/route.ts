@@ -4,19 +4,7 @@ import { OpenAI } from 'openai';
 
 import getServerSession from '@/lib/server-session';
 
-const isMock = process.env['MOCK_API'] === 'false';
-
-const client = new OpenAI({
-  apiKey: isMock
-    ? process.env['OPENAI_API_KEY_MOCK']
-    : process.env['OPENAI_API_KEY'],
-  baseURL: isMock
-    ? 'https://api.openai-mock.com/v1'
-    : 'https://api.openai.com/v1',
-});
-
-console.log('Using mock:', isMock);
-console.log('Base URL:', client.baseURL);
+const client = new OpenAI();
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
