@@ -3,8 +3,14 @@ import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
 import getServerSession from '@/lib/server-session';
+import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
+import { createThread } from '@/lib/chat/create-thread';
+import { addMessageToThread } from '@/lib/chat/create-message';
+import { getThreadMessages } from '@/lib/chat/read-thread-messages';
 
 const client = new OpenAI();
+
+let threadID: string | null = null;
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
@@ -29,21 +35,45 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!threadID) {
+      const thread = await createThread(session.user.id);
+      threadID = thread.id;
+    }
+
+    await addMessageToThread(threadID, 'user', prompt);
+
+    const messages = await getThreadMessages(threadID);
+
+    console.log('Messages:\n', messages, '\n');
+
+    const messagesContent = messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
+
+    console.log('Messages content:\n', messagesContent, '\n');
+
     const completion = await client.chat.completions.create({
       model: 'gpt-5-nano',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a UK‑based child development specialist (birth to 24 months). Use up‑to‑date NHS guidance and high‑quality scientific research to help parents understand, track and support their child’s developmental milestones. Never hallucinate. Use friendly, supportive language, explain technical terms, keep tone clear  (UK English). Respond in plain text. Use plain textbullet points and paragraphs, where possible. Keep your response short and concise. Ask clarifying questions when needed. Tailor advice to age and individual needs.',
-        },
-        { role: 'user', content: `${prompt}` },
-      ],
+      messages: messagesContent,
     });
 
-    console.log('Open AI response:', completion.choices[0].message.content);
+    // console.log('Open AI completion:\n\n\n', completion);
 
-    const response = `Response: ${completion.choices[0].message.content} Prompt: "${prompt}"`;
+    // console.log('Open AI choices content:\n', completion.choices[0]);
+    // console.log('Open AI response:', completion.choices[0].message.content);
+
+    const assistantMessage = await addMessageToThread(
+      threadID,
+      'assistant',
+      completion.choices[0].message.content,
+    );
+
+    console.log('Assistant message:\n', assistantMessage, '\n');
+
+    const response = await getThreadMessages(threadID);
+
+    console.log('Response:\n', response, '\n');
 
     return NextResponse.json({ response: response }, { status: 200 });
   } catch (error: unknown) {

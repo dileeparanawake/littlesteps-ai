@@ -21,7 +21,7 @@ export async function createMessage(
     .values({ threadId, sequence, role, content })
     .returning();
 
-  console.log('newMessage Created', newMessage);
+  // console.log('newMessage Created', newMessage);
 
   return newMessage;
 }
