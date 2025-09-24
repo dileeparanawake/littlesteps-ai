@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "strict": false,
     "noEmit": true,
+    "outDir": "dist",
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,

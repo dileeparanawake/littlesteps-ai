@@ -4,7 +4,7 @@ import { OpenAI } from 'openai';
 
 import getServerSession from '@/lib/server-session';
 
-const isMock = process.env['MOCK_API'] === 'true';
+const isMock = process.env['MOCK_API'] === 'false';
 
 const client = new OpenAI({
   apiKey: isMock
