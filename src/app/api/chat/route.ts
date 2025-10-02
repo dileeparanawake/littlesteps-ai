@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const { prompt } = await req.json();
 
   const session = await getServerSession();
-  console.log('User session:', session?.user?.email ?? 'no session');
+  // console.log('User session:', session?.user?.email ?? 'no session');
 
   // validate input
   try {
@@ -44,18 +44,19 @@ export async function POST(req: Request) {
 
     const messages = await getThreadMessages(threadID);
 
-    console.log('Messages:\n', messages, '\n');
+    // console.log('Messages:\n', messages, '\n');
 
     const messagesContent = messages.map((message) => ({
       role: message.role,
       content: message.content,
     }));
 
-    console.log('Messages content:\n', messagesContent, '\n');
+    // console.log('Messages content:\n', messagesContent, '\n');
 
     const completion = await client.chat.completions.create({
       model: 'gpt-5-nano',
       messages: messagesContent,
+      reasoning_effort: 'minimal',
     });
 
     // console.log('Open AI completion:\n\n\n', completion);
@@ -69,11 +70,11 @@ export async function POST(req: Request) {
       completion.choices[0].message.content,
     );
 
-    console.log('Assistant message:\n', assistantMessage, '\n');
+    // console.log('Assistant message:\n', assistantMessage, '\n');
 
     const response = await getThreadMessages(threadID);
 
-    console.log('Response:\n', response, '\n');
+    // console.log('Response:\n', response, '\n');
 
     return NextResponse.json({ response: response }, { status: 200 });
   } catch (error: unknown) {

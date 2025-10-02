@@ -8,6 +8,7 @@ import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
 import { Separator } from '@/components/ui/separator';
 import { useModal } from '@/components/layout/ModalProvider';
+import type { MessageRow } from '@/db/schema';
 
 type ChatThreadProps = {
   threadId?: string;
@@ -20,7 +21,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   // states
   // NOTE:consider message history state array
   const [prompt, setPrompt] = useState<string>(''); // prompt is the input value (may be array in future?)
-  const [response, setResponse] = useState<string>(''); // ai response value (may be array in future?)
+  const [response, setResponse] = useState<MessageRow[]>([]); // ai response value (may be array in future?)
   const [isLoading, setIsLoading] = useState<boolean>(false); // disable button for api call
   const [error, setError] = useState<null | string>(null); // handles error for api call
   // effects

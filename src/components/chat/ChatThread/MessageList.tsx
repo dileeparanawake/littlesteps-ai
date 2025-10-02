@@ -1,8 +1,10 @@
 'use client';
 
+import type { MessageRow } from '@/db/schema';
+
 // TODO: fix type
 type MessageListProps = {
-  response: [];
+  response: MessageRow[];
 };
 
 export function MessageList({ response }: MessageListProps) {
@@ -20,7 +22,7 @@ export function MessageList({ response }: MessageListProps) {
   return (
     <div className="p-4 space-y-3">
       {response
-        .filter((m) => m.role === 'user' || m.role === 'assistant') // hide system for UI
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
         .map((m) => (
           <div
             key={m.id}

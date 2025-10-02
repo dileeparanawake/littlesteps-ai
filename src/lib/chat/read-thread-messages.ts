@@ -3,8 +3,11 @@ import { message } from '@/db/schema';
 import { throwIfThreadDoesNotExist } from '@/db/guards';
 import { throwIfMissingFields } from '@/lib/validation';
 import { eq, asc, desc } from 'drizzle-orm';
+import type { MessageRow } from '@/db/schema';
 
-export async function getThreadMessages(threadId: string) {
+export async function getThreadMessages(
+  threadId: string,
+): Promise<MessageRow[]> {
   throwIfMissingFields({ threadId });
   await throwIfThreadDoesNotExist(threadId);
 
@@ -16,7 +19,9 @@ export async function getThreadMessages(threadId: string) {
   return messages;
 }
 
-export async function getLastMessage(threadId: string) {
+export async function getLastMessage(
+  threadId: string,
+): Promise<MessageRow | null> {
   throwIfMissingFields({ threadId });
   await throwIfThreadDoesNotExist(threadId);
 
@@ -26,5 +31,5 @@ export async function getLastMessage(threadId: string) {
     .where(eq(message.threadId, threadId))
     .orderBy(desc(message.sequence))
     .limit(1);
-  return lastMessage;
+  return lastMessage[0];
 }
