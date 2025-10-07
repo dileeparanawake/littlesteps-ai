@@ -14,7 +14,7 @@ import { ErrorAlert } from '@/components/ui/error-alert';
 import { signIn } from '@/lib/sign-in';
 import { authClient } from '@/lib/auth-client';
 
-import { useModal } from '@/components/layout/ModalProvider';
+import { useModal } from '@/components/providers/ModalProvider';
 
 export default function SignInModal() {
   // hooks

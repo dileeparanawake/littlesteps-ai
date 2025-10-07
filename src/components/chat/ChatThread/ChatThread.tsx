@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
 import { Separator } from '@/components/ui/separator';
-import { useModal } from '@/components/layout/ModalProvider';
+import { useModal } from '@/components/providers/ModalProvider';
 import type { MessageRow } from '@/db/schema';
 
 type ChatThreadProps = {

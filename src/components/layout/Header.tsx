@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { authClient } from '@/lib/auth-client';
-import { useModal } from './ModalProvider';
+import { useModal } from '../providers/ModalProvider';
 
 export default function Header() {
   // hooks

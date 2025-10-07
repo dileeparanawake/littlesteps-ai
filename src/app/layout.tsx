@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 
+import ReactQueryProvider from '@/components/providers/ReactQueryProvider';
+
 import './globals.css';
 
-import ModalProvider from '@/components/layout/ModalProvider';
+import ModalProvider from '@/components/providers/ModalProvider';
 import Header from '@/components/layout/Header';
 
 export const metadata: Metadata = {
@@ -21,10 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="h-screen overflow-hidden">
-        <ModalProvider>
-          <Header />
-          <div className="h-[calc(100vh-73px)] overflow-hidden">{children}</div>
-        </ModalProvider>
+        <ReactQueryProvider>
+          <ModalProvider>
+            <Header />
+            <div className="h-[calc(100vh-73px)] overflow-hidden">
+              {children}
+            </div>
+          </ModalProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
