@@ -6,7 +6,10 @@ import getServerSession from '@/lib/server-session';
 
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
-import { getThreadMessages } from '@/lib/chat/read-thread-messages';
+import {
+  getThreadMessages,
+  userOwnsThread,
+} from '@/lib/chat/read-thread-messages';
 
 const client = new OpenAI();
 
@@ -78,7 +81,6 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const threadId = searchParams.get('threadId');
-
     if (!threadId) {
       return NextResponse.json({ error: 'Missing threadId' }, { status: 400 });
     }
@@ -88,14 +90,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const isUserOwner = await userOwnsThread(threadId, session.user.id);
+    if (!isUserOwner) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // Fetch messages for this thread
     const messages = await getThreadMessages(threadId);
-
-    // Optionally check if the thread belongs to the user
-    // (depends on how your data model links user -> thread)
-    // if (messages[0]?.userId !== session.user.id) {
-    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    // }
 
     return NextResponse.json(messages, { status: 200 });
   } catch (error: unknown) {

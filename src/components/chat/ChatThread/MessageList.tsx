@@ -5,7 +5,14 @@ import type { MessageRow } from '@/db/schema';
 
 async function fetchThreadMessages(threadId: string): Promise<MessageRow[]> {
   const res = await fetch(`/api/chat?threadId=${threadId}`);
-  if (!res.ok) throw new Error('Failed to fetch thread messages');
+  if (!res.ok) {
+    try {
+      const data = await res.json();
+      throw new Error(data?.error ?? 'Failed to fetch thread messages');
+    } catch (_e) {
+      throw new Error('Failed to fetch thread messages');
+    }
+  }
   return res.json();
 }
 
@@ -19,6 +26,7 @@ export function MessageList({ threadId }: MessageListProps) {
     data: messages,
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ['threadMessages', threadId],
     queryFn: () => fetchThreadMessages(threadId),
@@ -30,7 +38,13 @@ export function MessageList({ threadId }: MessageListProps) {
   }
 
   if (isError || !messages) {
-    return <p className="text-destructive text-sm">Failed to load messages.</p>;
+    return (
+      <p className="text-destructive text-sm">
+        {isError
+          ? `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+          : 'Failed to load messages.'}
+      </p>
+    );
   }
 
   if (messages.length === 0) {
