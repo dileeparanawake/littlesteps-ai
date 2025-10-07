@@ -3,16 +3,16 @@ import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
 import getServerSession from '@/lib/server-session';
-import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
+
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import { getThreadMessages } from '@/lib/chat/read-thread-messages';
 
 const client = new OpenAI();
 
-let threadID: string | null = null;
-
 export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const existingThreadId = searchParams.get('threadId');
   const { prompt } = await req.json();
 
   const session = await getServerSession();
@@ -35,11 +35,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // create thread if it doesn't exist
-    if (!threadID) {
-      const thread = await createThread(session.user.id);
-      threadID = thread.id;
-    }
+    // If a threadId is passed, reuse it; otherwise, create a new one
+    const threadID = existingThreadId
+      ? existingThreadId
+      : (await createThread(session.user.id)).id;
 
     // add user prompt to thread
     await addMessageToThread(threadID, 'user', prompt);
@@ -68,6 +67,37 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ threadID }, { status: 200 });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const threadId = searchParams.get('threadId');
+
+    if (!threadId) {
+      return NextResponse.json({ error: 'Missing threadId' }, { status: 400 });
+    }
+
+    const session = await getServerSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Fetch messages for this thread
+    const messages = await getThreadMessages(threadId);
+
+    // Optionally check if the thread belongs to the user
+    // (depends on how your data model links user -> thread)
+    // if (messages[0]?.userId !== session.user.id) {
+    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // }
+
+    return NextResponse.json(messages, { status: 200 });
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Internal server error';

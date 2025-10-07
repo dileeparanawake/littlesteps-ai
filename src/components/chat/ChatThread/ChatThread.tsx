@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 
 import { authClient } from '@/lib/auth-client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
@@ -19,13 +19,14 @@ type ChatThreadProps = {
 
 export default function ChatThread({ threadId }: ChatThreadProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   // hooks
   const { data: session } = authClient.useSession();
   const { setShowSignIn } = useModal();
   // states
   // NOTE:consider message history state array
   const [prompt, setPrompt] = useState<string>(''); // prompt is the input value (may be array in future?)
-  const [response, setResponse] = useState<MessageRow[]>([]); // ai response value (may be array in future?)
+  // const [response, setResponse] = useState<MessageRow[]>([]); // ai response value (may be array in future?)
   const [isLoading, setIsLoading] = useState<boolean>(false); // disable button for api call
   const [error, setError] = useState<null | string>(null); // handles error for api call
   // effects
@@ -64,13 +65,16 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     // handle submit > api call
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/chat${threadId ? `?threadId=${threadId}` : ''}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt }),
         },
-        body: JSON.stringify({ prompt }),
-      });
+      );
 
       if (!response.ok) {
         const { error } = await response.json();
@@ -81,6 +85,10 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
         const { threadID } = await response.json();
         setPrompt('');
         router.push(`/chat/${threadID}`);
+
+        queryClient.invalidateQueries({
+          queryKey: ['threadMessages', threadID],
+        });
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -112,9 +120,22 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
 
       {/* Messages (scrollable middle section) */}
       <div id="message-list" className="flex-1 overflow-y-auto min-h-0">
-        <div className="mx-auto w-full max-w-3xl px-4 py-4">
-          {/* TODO: render messages; ephemeral empty state if none */}
-          <MessageList response={response} />
+        <div
+          className={
+            threadId
+              ? 'mx-auto w-full max-w-3xl px-4 py-4 min-h-full'
+              : 'mx-auto w-full max-w-3xl px-4 py-4 min-h-full flex items-center justify-center'
+          }
+        >
+          {threadId ? (
+            // Render the message list when there’s an existing thread
+            <MessageList threadId={threadId} />
+          ) : (
+            // Empty state: centered between header and footer
+            <p className="text-base text-center text-muted-foreground">
+              Ask a question to get advice
+            </p>
+          )}
         </div>
       </div>
 
