@@ -3,18 +3,22 @@ import { useState, useEffect } from 'react';
 
 import { authClient } from '@/lib/auth-client';
 
+import { useQuery } from '@tanstack/react-query';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
 import { Separator } from '@/components/ui/separator';
 import { useModal } from '@/components/providers/ModalProvider';
 import type { MessageRow } from '@/db/schema';
+import { useRouter } from 'next/navigation';
 
 type ChatThreadProps = {
   threadId?: string;
 };
 
 export default function ChatThread({ threadId }: ChatThreadProps) {
+  const router = useRouter();
   // hooks
   const { data: session } = authClient.useSession();
   const { setShowSignIn } = useModal();
@@ -32,6 +36,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       sessionStorage.removeItem('savedPrompt'); // optional cleanup
     }
   }, []);
+
   //handlers
 
   const handleInputChange = (value: string): void => {
@@ -72,10 +77,11 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
         throw new Error(`Server error: ${error}`);
       }
 
-      const responseData = await response.json();
-
-      setResponse(responseData.response);
-      setPrompt(''); // NOTE: consider prompt history state array
+      if (response.ok) {
+        const { threadID } = await response.json();
+        setPrompt('');
+        router.push(`/chat/${threadID}`);
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message || 'Something went wrong.');
@@ -89,7 +95,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     <section
       id="chat-thread"
       aria-labelledby="thread-title"
-      className="flex h-full flex-col"
+      className="h-full flex flex-col overflow-hidden"
     >
       {/* Header (fixed at top) */}
       <header className="flex-shrink-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">

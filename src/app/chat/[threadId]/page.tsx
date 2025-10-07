@@ -5,9 +5,5 @@ export default function ThreadPage({
 }: {
   params: { threadId: string };
 }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <ChatThread threadId={params.threadId} />
-    </div>
-  );
+  return <ChatThread threadId={params.threadId} />;
 }
