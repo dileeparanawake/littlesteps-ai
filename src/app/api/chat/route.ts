@@ -8,9 +8,9 @@ import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import {
   getThreadMessages,
-  getThreadTitle,
+  getThreads,
   userOwnsThread,
-} from '@/lib/chat/read-thread-messages';
+} from '@/lib/chat/read-thread';
 import { renameThread } from '@/lib/chat/update-thread';
 
 const client = new OpenAI();
@@ -97,7 +97,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch messages for this thread
+    // Fetch messages for this
     const messages = await getThreadMessages(threadId);
 
     return NextResponse.json(messages, { status: 200 });
