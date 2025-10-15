@@ -86,7 +86,7 @@ describe.sequential('getLastMessage', () => {
   });
 
   it('should return the last message', async () => {
-    const [lastMessage] = await getLastMessage(newThread.id);
+    const lastMessage = await getLastMessage(newThread.id);
     console.log('lastMessage', lastMessage);
     expect(lastMessage.content).toBe('Second assistant response');
   });
