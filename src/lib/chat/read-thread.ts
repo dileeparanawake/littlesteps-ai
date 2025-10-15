@@ -1,6 +1,9 @@
 import { db } from '@/db';
 import { message, thread } from '@/db/schema';
-import { throwIfThreadDoesNotExist } from '@/db/guards';
+import {
+  throwIfThreadDoesNotExist,
+  throwIfUserDoesNotExist,
+} from '@/db/guards';
 import { throwIfMissingFields } from '@/lib/validation';
 import { eq, asc, desc, and } from 'drizzle-orm';
 import type { MessageRow } from '@/db/schema';
@@ -45,4 +48,29 @@ export async function userOwnsThread(threadId: string, userId: string) {
     .limit(1);
 
   return !!row;
+}
+
+export async function getThreadTitle(threadId: string) {
+  throwIfMissingFields({ threadId });
+  await throwIfThreadDoesNotExist(threadId);
+
+  const [row] = await db
+    .select({ title: thread.title })
+    .from(thread)
+    .where(eq(thread.id, threadId))
+    .limit(1);
+  return row?.title;
+}
+
+// get all threads for a user ordered by most recent first
+export async function getThreads(userId: string) {
+  throwIfMissingFields({ userId });
+  await throwIfUserDoesNotExist(userId);
+
+  const threads = await db
+    .select()
+    .from(thread)
+    .where(eq(thread.userId, userId))
+    .orderBy(desc(thread.createdAt));
+  return threads;
 }

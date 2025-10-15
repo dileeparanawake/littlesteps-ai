@@ -1,5 +1,7 @@
 'use client';
 
+import ThreadList from './ThreadList';
+
 export default function ChatSidebar() {
   return (
     <div className="h-full flex flex-col">
@@ -9,14 +11,7 @@ export default function ChatSidebar() {
       </div>
 
       {/* Thread list - scrollable */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          {/* TODO: Add thread items here */}
-          <div className="text-sm text-muted-foreground p-2">
-            No conversations yet
-          </div>
-        </div>
-      </div>
+      <ThreadList />
 
       {/* Footer section - fixed */}
       <div className="p-4 border-t">

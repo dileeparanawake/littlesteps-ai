@@ -5,12 +5,11 @@ import { authClient } from '@/lib/auth-client';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
 import { Separator } from '@/components/ui/separator';
 import { useModal } from '@/components/providers/ModalProvider';
-import type { MessageRow } from '@/db/schema';
+
 import { useRouter } from 'next/navigation';
 
 type ChatThreadProps = {

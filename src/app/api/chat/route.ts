@@ -8,8 +8,10 @@ import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import {
   getThreadMessages,
+  getThreadTitle,
   userOwnsThread,
 } from '@/lib/chat/read-thread-messages';
+import { renameThread } from '@/lib/chat/update-thread';
 
 const client = new OpenAI();
 
