@@ -102,3 +102,4 @@ export const message = pgTable(
 );
 
 export type MessageRow = typeof message.$inferSelect;
+export type ThreadRow = typeof thread.$inferSelect;

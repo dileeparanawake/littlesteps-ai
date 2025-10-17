@@ -11,7 +11,6 @@ import {
   getThreads,
   userOwnsThread,
 } from '@/lib/chat/read-thread';
-import { renameThread } from '@/lib/chat/update-thread';
 
 const client = new OpenAI();
 
