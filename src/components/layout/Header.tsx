@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { authClient } from '@/lib/auth-client';
 import { useModal } from '../providers/ModalProvider';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   // hooks
@@ -16,7 +17,7 @@ export default function Header() {
 
   // states
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
-
+  const router = useRouter();
   // effects
   useEffect(() => {
     // If the modal is open, and we finished loading, and there's no session — show error
@@ -36,6 +37,7 @@ export default function Header() {
         await authClient.signOut();
       } finally {
         setIsSigningOut(false);
+        router.push('/chat');
       }
     } else {
       setShowSignIn(true);
