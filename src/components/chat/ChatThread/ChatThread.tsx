@@ -83,6 +83,12 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       if (response.ok) {
         const { threadID } = await response.json();
         setPrompt('');
+
+        if (!threadId && session?.user?.id) {
+          queryClient.invalidateQueries({
+            queryKey: ['threads', session.user.id],
+          });
+        }
         router.push(`/chat/${threadID}`);
 
         queryClient.invalidateQueries({
