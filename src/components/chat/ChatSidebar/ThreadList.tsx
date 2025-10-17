@@ -5,8 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { authClient } from '@/lib/auth-client';
 import type { ThreadRow } from '@/db/schema';
 
-async function fetchThreads(userId: string) {
-  const res = await fetch(`/api/threads?userId=${userId}`);
+async function fetchThreads() {
+  const res = await fetch(`/api/threads`);
   if (!res.ok) {
     throw new Error('Failed to fetch threads');
   }
@@ -21,7 +21,7 @@ export default function ThreadList() {
     isError,
   } = useQuery({
     queryKey: ['threads', session?.user?.id],
-    queryFn: () => fetchThreads(session?.user?.id),
+    queryFn: () => fetchThreads(),
     enabled: !!session?.user?.id,
   });
 
