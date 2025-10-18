@@ -5,6 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { authClient } from '@/lib/auth-client';
 import type { ThreadRow } from '@/db/schema';
 
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+
 async function fetchThreads() {
   const res = await fetch(`/api/threads`);
   if (!res.ok) {
@@ -23,6 +26,15 @@ export default function ThreadList() {
     queryKey: ['threads', session?.user?.id],
     queryFn: () => fetchThreads(),
     enabled: !!session?.user?.id,
+  });
+
+  const params = useParams();
+  const activeThreadId = params?.threadId as string | undefined;
+
+  const sortedThreads = [...(threads ?? [])].sort((a, b) => {
+    if (a.id === activeThreadId) return -1;
+    if (b.id === activeThreadId) return 1;
+    return 0;
   });
 
   if (!session?.user) {
@@ -77,9 +89,26 @@ export default function ThreadList() {
       <div className="p-2">
         {/* TODO: Add thread items here */}
         <div className="text-sm text-muted-foreground p-2">
-          {threads.map((thread) => (
-            <div key={thread.id}>{thread.title}</div>
-          ))}
+          {sortedThreads.map((thread) => {
+            const isActive = thread.id === activeThreadId;
+            return (
+              <div
+                key={thread.id}
+                className={`p-2 rounded cursor-pointer ${
+                  isActive
+                    ? 'bg-muted font-medium border-l-2 border-primary'
+                    : 'hover:bg-accent'
+                }`}
+              >
+                <Link
+                  className="text-sm text-muted-foreground hover:text-primary no-underline"
+                  href={`/chat/${thread.id}`}
+                >
+                  {thread.title}
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
