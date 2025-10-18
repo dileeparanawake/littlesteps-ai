@@ -7,7 +7,8 @@ import { makeTestUser } from '../helpers/test-data';
 import {
   getThreadMessages,
   getLastMessage,
-} from '@/lib/chat/read-thread-messages';
+  getThreads,
+} from '@/lib/chat/read-thread';
 import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
 import { MessageRole } from '@/db/enums';
 
@@ -85,7 +86,7 @@ describe.sequential('getLastMessage', () => {
   });
 
   it('should return the last message', async () => {
-    const [lastMessage] = await getLastMessage(newThread.id);
+    const lastMessage = await getLastMessage(newThread.id);
     console.log('lastMessage', lastMessage);
     expect(lastMessage.content).toBe('Second assistant response');
   });
@@ -94,5 +95,25 @@ describe.sequential('getLastMessage', () => {
   });
   it('should throw an error if the threadId is not provided', async () => {
     await expect(getLastMessage('')).rejects.toThrow();
+  });
+});
+
+describe.sequential('getThreads', () => {
+  beforeAll(async () => {
+    await wipeDB();
+    await createTestUser(testUser);
+    const newThread = await createThread(testUser.id);
+    const newThread2 = await createThread(testUser.id);
+    const newThread3 = await createThread(testUser.id);
+  });
+
+  afterAll(async () => {
+    await wipeDB();
+  });
+
+  it('should return the threads in the correct order', async () => {
+    const threads = await getThreads(testUser.id);
+    expect(threads).toHaveLength(3);
+    console.log('threads', threads);
   });
 });

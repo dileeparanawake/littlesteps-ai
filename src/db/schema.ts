@@ -100,3 +100,6 @@ export const message = pgTable(
   },
   (t) => [unique('thread_sequence_unique').on(t.threadId, t.sequence)],
 );
+
+export type MessageRow = typeof message.$inferSelect;
+export type ThreadRow = typeof thread.$inferSelect;

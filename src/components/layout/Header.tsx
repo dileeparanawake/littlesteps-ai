@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { authClient } from '@/lib/auth-client';
-import { useModal } from './ModalProvider';
+import { useModal } from '../providers/ModalProvider';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   // hooks
@@ -16,7 +17,7 @@ export default function Header() {
 
   // states
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
-
+  const router = useRouter();
   // effects
   useEffect(() => {
     // If the modal is open, and we finished loading, and there's no session — show error
@@ -36,6 +37,7 @@ export default function Header() {
         await authClient.signOut();
       } finally {
         setIsSigningOut(false);
+        router.push('/chat');
       }
     } else {
       setShowSignIn(true);
@@ -46,7 +48,7 @@ export default function Header() {
   const disabled = isPending || isSigningOut;
 
   return (
-    <header className="sticky top-0 z-40 flex justify-between p-4">
+    <header className="sticky top-0 z-50 flex justify-between items-center p-4 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-">
       <h1 className="text-lg font-semibold leading-none">LittleSteps AI</h1>
       <Button
         variant="link"
