@@ -7,19 +7,26 @@ import {
 import { throwIfMissingFields } from '@/lib/validation';
 import { and, eq } from 'drizzle-orm';
 
+import type { ThreadRow } from '@/db/schema';
+
 export async function renameThread(
   userId: string,
   threadId: string,
   title: string,
-) {
+): Promise<ThreadRow> {
   throwIfMissingFields({ userId, threadId, title });
   await throwIfUserDoesNotExist(userId);
   await throwIfThreadDoesNotExist(threadId);
 
-  const updatedThread = await db
+  const [renamedThread] = await db
     .update(thread)
     .set({ title })
-    .where(and(eq(thread.id, threadId), eq(thread.userId, userId)));
+    .where(and(eq(thread.id, threadId), eq(thread.userId, userId)))
+    .returning();
 
-  return updatedThread;
+  if (!renamedThread) {
+    throw new Error('Failed to rename thread');
+  }
+
+  return renamedThread;
 }
