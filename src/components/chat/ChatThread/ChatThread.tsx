@@ -10,6 +10,7 @@ import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
 import { Separator } from '@/components/ui/separator';
 import { useModal } from '@/components/providers/ModalProvider';
 
+import ThreadTitle from '@/components/chat/ChatThread/ThreadTitle';
 import { useRouter } from 'next/navigation';
 import type { ThreadRow } from '@/db/schema';
 
@@ -118,14 +119,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     >
       {/* Header (fixed at top) */}
       <header className="flex-shrink-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full max-w-3xl px-4 py-3">
-          <h2
-            id="thread-title"
-            className="text-sm font-medium text-muted-foreground"
-          >
-            {threadTitle}
-          </h2>
-        </div>
+        <ThreadTitle threadId={threadId} />
         <Separator />
       </header>
 

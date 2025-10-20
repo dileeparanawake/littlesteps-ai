@@ -8,13 +8,7 @@ import type { ThreadRow } from '@/db/schema';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
-async function fetchThreads() {
-  const res = await fetch(`/api/threads`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch threads');
-  }
-  return res.json() as Promise<ThreadRow[]>;
-}
+import { fetchThreads } from '@/lib/api/threads';
 
 function SidebarNotice({ children }: { children: React.ReactNode }) {
   return (

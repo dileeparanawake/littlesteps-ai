@@ -27,7 +27,8 @@ export async function PATCH(req: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { threadId, title } = await req.json();
+    const { threadId, title }: { threadId: string; title: string } =
+      await req.json();
 
     if (typeof title !== 'string') {
       return NextResponse.json(
