@@ -1,0 +1,1 @@
+ALTER TABLE "thread" ALTER COLUMN "title" SET DATA TYPE varchar(60);

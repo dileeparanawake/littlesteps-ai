@@ -6,6 +6,7 @@ import {
   integer,
   unique,
   uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 import { messageRole } from './enums';
@@ -77,7 +78,7 @@ export const thread = pgTable('thread', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
-  title: text('title'),
+  title: varchar('title', { length: 60 }),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()),
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()),
 });

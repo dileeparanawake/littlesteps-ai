@@ -8,6 +8,13 @@
       "when": 1757947115683,
       "tag": "0000_loud_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760950011591,
+      "tag": "0001_numerous_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }
