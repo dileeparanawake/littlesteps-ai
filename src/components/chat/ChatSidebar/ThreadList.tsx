@@ -16,6 +16,41 @@ async function fetchThreads() {
   return res.json() as Promise<ThreadRow[]>;
 }
 
+function SidebarNotice({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="p-2">
+        <div className="text-sm text-muted-foreground p-2">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ThreadItem({
+  thread,
+  active,
+}: {
+  thread: ThreadRow;
+  active: boolean;
+}) {
+  return (
+    <div
+      className={`p-2 rounded cursor-pointer ${
+        active
+          ? 'bg-muted font-medium border-l-2 border-primary'
+          : 'hover:bg-accent'
+      }`}
+    >
+      <Link
+        className="text-sm text-muted-foreground hover:text-primary no-underline block"
+        href={`/chat/${thread.id}`}
+      >
+        {thread.title}
+      </Link>
+    </div>
+  );
+}
+
 export default function ThreadList() {
   const { data: session } = authClient.useSession();
   const {
@@ -37,78 +72,24 @@ export default function ThreadList() {
     return 0;
   });
 
-  if (!session?.user) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          {/* TODO: Add thread items here */}
-          <div className="text-sm text-muted-foreground p-2">
-            Sign in to view chat history.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          <div className="text-sm text-muted-foreground p-2">
-            Loading threads...
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (isError) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          <div className="text-sm text-muted-foreground p-2">
-            Error loading threads.
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (threads?.length === 0) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          <div className="text-sm text-muted-foreground p-2">
-            No threads created yet.
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!session?.user)
+    return <SidebarNotice>Sign in to view chat history.</SidebarNotice>;
+  if (isLoading) return <SidebarNotice>Loading threads…</SidebarNotice>;
+  if (isError) return <SidebarNotice>Error loading threads.</SidebarNotice>;
+  if (!threads || threads.length === 0)
+    return <SidebarNotice>No threads created yet.</SidebarNotice>;
 
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="p-2">
-        {/* TODO: Add thread items here */}
         <div className="text-sm text-muted-foreground p-2">
-          {sortedThreads.map((thread) => {
-            const isActive = thread.id === activeThreadId;
-            return (
-              <div
-                key={thread.id}
-                className={`p-2 rounded cursor-pointer ${
-                  isActive
-                    ? 'bg-muted font-medium border-l-2 border-primary'
-                    : 'hover:bg-accent'
-                }`}
-              >
-                <Link
-                  className="text-sm text-muted-foreground hover:text-primary no-underline"
-                  href={`/chat/${thread.id}`}
-                >
-                  {thread.title}
-                </Link>
-              </div>
-            );
-          })}
+          {sortedThreads.map((thread) => (
+            <ThreadItem
+              key={thread.id}
+              thread={thread}
+              active={thread.id === activeThreadId}
+            />
+          ))}
         </div>
       </div>
     </div>
