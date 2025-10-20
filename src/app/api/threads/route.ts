@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { threadTitleSchema } from '@/lib/validation/thread';
 import getServerSession from '@/lib/server-session';
 import { getThreads } from '@/lib/chat/read-thread';
 import { userOwnsThread } from '@/lib/chat/read-thread';
@@ -27,24 +28,16 @@ export async function PATCH(req: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { threadId, title }: { threadId: string; title: string } =
-      await req.json();
 
-    if (typeof title !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid title type' },
-        { status: 400 },
-      );
+    const json = await req.json().catch(() => ({}));
+    const parsed = threadTitleSchema.safeParse(json);
+
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? 'Invalid input';
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    const trimmedTitle = title.trim();
-
-    if (title.trim().length === 0 || title.length > 60) {
-      return NextResponse.json(
-        { error: 'Invalid title length' },
-        { status: 400 },
-      );
-    }
+    const { threadId, title } = parsed.data;
 
     if (!(await userOwnsThread(threadId, session.user.id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -53,7 +46,7 @@ export async function PATCH(req: Request) {
     const renamedThread = await renameThread(
       session.user.id,
       threadId,
-      trimmedTitle,
+      title.trim(),
     );
 
     if (!renamedThread) {
