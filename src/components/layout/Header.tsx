@@ -49,18 +49,20 @@ export default function Header() {
   const disabled = isPending || isSigningOut;
 
   return (
-    <header className="sticky top-0 z-50 flex justify-between items-center p-4 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-">
-      <h1 className="text-lg font-semibold leading-none">
+    <header className="sticky top-0 z-50 flex justify-between items-center px-6 py-4 bg-gray-100/80 backdrop-blur-md supports-[backdrop-filter]:bg-gray-100/80 border-b border-border/50">
+      <h1 className="text-xl font-bold leading-none tracking-tight">
         <Link
           href="/"
-          className="no-underline text-foreground hover:underline hover:text-primary transition-colors"
+          className="no-underline text-foreground hover:text-primary transition-colors duration-200"
         >
           LittleSteps AI
         </Link>
       </h1>
       <Button
-        variant="link"
-        className="text-muted-foreground p-0 h-auto leading-none"
+        aria-label={session?.user ? 'Log out' : 'Log in'}
+        variant="ghost"
+        size="sm"
+        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
         onClick={handleClick}
         disabled={disabled}
         aria-busy={disabled}

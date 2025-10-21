@@ -120,7 +120,6 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       {/* Header (fixed at top) */}
       <header className="flex-shrink-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <ThreadTitle threadId={threadId} />
-        <Separator />
       </header>
 
       {/* Messages (scrollable middle section) */}

@@ -5,9 +5,9 @@ import Link from 'next/link';
 
 export default function ChatSidebar() {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-sidebar">
       {/* Header section - fixed */}
-      <div className="p-4 border-b">
+      <div className="p-4 ">
         <div className="flex justify-between items-baseline">
           <p className="text-sm font-bold leading-none tracking-tight">
             Chat History
@@ -25,7 +25,7 @@ export default function ChatSidebar() {
       <ThreadList />
 
       {/* Footer section - fixed */}
-      <div className="p-4 border-t"></div>
+      <div className="p-4 "></div>
     </div>
   );
 }
