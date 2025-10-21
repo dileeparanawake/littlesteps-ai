@@ -29,7 +29,10 @@ export async function fetchThreads(): Promise<ThreadRow[]> {
 export async function deleteThreadApi(
   threadId: string,
 ): Promise<{ success: boolean; threadId: string }> {
-  const res = await fetch(`/api/threads/${threadId}`, { method: 'DELETE' });
+  const res = await fetch(`/api/threads`, {
+    method: 'DELETE',
+    body: JSON.stringify({ threadId }),
+  });
   if (!res.ok) {
     const msg =
       (await res.json().catch(() => null))?.error ?? 'Failed to delete thread';

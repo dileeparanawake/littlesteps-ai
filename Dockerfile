@@ -4,6 +4,7 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
+
 # Install pnpm globally
 RUN npm install -g pnpm
 
@@ -11,7 +12,7 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy rest of your app
 COPY . .
