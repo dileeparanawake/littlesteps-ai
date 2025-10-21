@@ -9,3 +9,8 @@ export const threadTitleSchema = z.object({
     .max(60, 'Title must be 60 characters or fewer'),
 });
 export type ThreadTitleInput = z.infer<typeof threadTitleSchema>;
+
+export const threadIdSchema = z.object({
+  threadId: z.uuid('Invalid thread ID'),
+});
+export type ThreadIdInput = z.infer<typeof threadIdSchema>;
