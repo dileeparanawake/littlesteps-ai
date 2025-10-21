@@ -55,14 +55,14 @@ export default function DeletedThreadButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger aria-label="Delete thread">
-        <Trash2 className="h-3 w-3 " />
+        <Trash2 className="h-3 w-3 hover:text-destructive transition-colors duration-200" />
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+            This action cannot be undone. This will permanently delete your chat
+            thread and remove your data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

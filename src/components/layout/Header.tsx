@@ -62,7 +62,7 @@ export default function Header() {
         aria-label={session?.user ? 'Log out' : 'Log in'}
         variant="ghost"
         size="sm"
-        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+        className="text-muted-foreground  hover:text-primary transition-colors duration-200"
         onClick={handleClick}
         disabled={disabled}
         aria-busy={disabled}

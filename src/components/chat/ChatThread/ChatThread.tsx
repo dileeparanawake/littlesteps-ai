@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
-import { Separator } from '@/components/ui/separator';
+
 import { useModal } from '@/components/providers/ModalProvider';
 
 import ThreadTitle from '@/components/chat/ChatThread/ThreadTitle';

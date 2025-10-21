@@ -39,8 +39,9 @@ export default function ThreadTitle({ threadId }: { threadId: string }) {
         <div className="flex items-baseline gap-2 group">
           <h2
             id="thread-title"
-            className={`text-sm font-medium text-muted-foreground ${threadId ? 'hover:text-foreground hover:cursor-text transition-colors' : ''}`}
+            className={`text-sm font-medium text-muted-foreground ${threadId ? 'hover:text-primary hover:cursor-text transition-colors' : ''}`}
             onDoubleClick={() => threadId && setEditing(true)}
+            title={threadId ? 'Double-click to edit thread title' : ''}
           >
             {displayTitle}
           </h2>
