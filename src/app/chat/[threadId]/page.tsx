@@ -1,9 +1,10 @@
 import { ChatThread } from '@/components/chat/ChatThread';
 
-export default function ThreadPage({
+export default async function ThreadPage({
   params,
 }: {
-  params: { threadId: string };
+  params: Promise<{ threadId: string }>;
 }) {
-  return <ChatThread threadId={params.threadId} />;
+  const { threadId } = await params;
+  return <ChatThread threadId={threadId} />;
 }
