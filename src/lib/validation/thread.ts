@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const threadTitleSchema = z.object({
-  threadId: z.string(),
+  threadId: z.uuid('Invalid thread ID'),
   title: z
     .string()
     .trim()

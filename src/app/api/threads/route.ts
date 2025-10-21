@@ -43,11 +43,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const renamedThread = await renameThread(
-      session.user.id,
-      threadId,
-      title.trim(),
-    );
+    const renamedThread = await renameThread(session.user.id, threadId, title);
 
     if (!renamedThread) {
       return NextResponse.json(
