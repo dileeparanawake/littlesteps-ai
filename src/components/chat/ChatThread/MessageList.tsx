@@ -3,6 +3,18 @@
 import { useQuery } from '@tanstack/react-query';
 import type { MessageRow } from '@/db/schema';
 
+import ReactMarkdown from 'react-markdown';
+
+function normalizeAssistantContent(s: string): string {
+  // Turn Unicode bullets into markdown list items
+  let out = s.replace(/^\s*•\s?/gm, '- ');
+  // Remove empty list items that are just a bullet with no text
+  out = out.replace(/^\s*-\s*$/gm, '');
+  // Collapse excessive blank lines
+  out = out.replace(/\n{3,}/g, '\n\n');
+  return out;
+}
+
 async function fetchThreadMessages(threadId: string): Promise<MessageRow[]> {
   const res = await fetch(`/api/chat?threadId=${threadId}`);
   if (!res.ok) {
@@ -71,11 +83,16 @@ export function MessageList({ threadId }: MessageListProps) {
                   : 'items-start text-left'
               } flex flex-col max-w-full w-fit`}
             >
-              <span className="text-[11px] text-muted-foreground mb-1 capitalize">
+              <span className="text-xs text-muted-foreground mb-1 capitalize">
                 {m.role}
               </span>
-              <div className="rounded-lg px-4 py-2 max-w-full w-fit text-sm bg-primary text-primary-foreground">
-                {m.content}
+
+              <div className="rounded-lg px-4 py-2 max-w-full w-fit text-xs bg-primary text-primary-foreground">
+                <div className="[&_*]:text-primary-foreground [&_a]:underline [&_strong]:text-primary-foreground [&_ul]:list-disc [&_ul]:pl-5 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h4]:text-sm [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-medium [&_h4]:font-medium [&_h1]:mb-2 [&_h2]:mb-2 [&_h3]:mb-1 [&_h4]:mb-1">
+                  <ReactMarkdown>
+                    {normalizeAssistantContent(m.content)}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           </div>
