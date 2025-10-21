@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { authClient } from '@/lib/auth-client';
 import { useModal } from '../providers/ModalProvider';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Header() {
   // hooks
@@ -49,7 +50,14 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 flex justify-between items-center p-4 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-">
-      <h1 className="text-lg font-semibold leading-none">LittleSteps AI</h1>
+      <h1 className="text-lg font-semibold leading-none">
+        <Link
+          href="/"
+          className="no-underline text-foreground hover:underline hover:text-primary transition-colors"
+        >
+          LittleSteps AI
+        </Link>
+      </h1>
       <Button
         variant="link"
         className="text-muted-foreground p-0 h-auto leading-none"
