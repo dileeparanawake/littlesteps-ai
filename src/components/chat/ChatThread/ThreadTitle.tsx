@@ -7,8 +7,6 @@ import { useState } from 'react';
 
 import { fetchThreads } from '@/lib/api/threads';
 
-import type { ThreadRow } from '@/db/schema';
-
 import EditTitleForm from '@/components/chat/ChatThread/EditTitleForm';
 
 export default function ThreadTitle({ threadId }: { threadId: string }) {
@@ -39,8 +37,8 @@ export default function ThreadTitle({ threadId }: { threadId: string }) {
       ) : (
         <h2
           id="thread-title"
-          className="text-sm font-medium text-muted-foreground"
-          onDoubleClick={() => setEditing(true)}
+          className={`text-sm font-medium text-muted-foreground ${threadId ? 'hover:text-foreground hover:cursor-text transition-colors' : ''}`}
+          onDoubleClick={() => threadId && setEditing(true)}
         >
           {displayTitle}
         </h2>
