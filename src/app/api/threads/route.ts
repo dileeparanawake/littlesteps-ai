@@ -6,7 +6,7 @@ import { userOwnsThread } from '@/lib/chat/read-thread';
 import { renameThread } from '@/lib/chat/update-thread';
 import { deleteThread } from '@/lib/chat/delete-thread';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession();
     if (!session?.user) {
@@ -16,10 +16,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json(threads, { status: 200 });
   } catch (error: unknown) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    const msg =
+      error instanceof Error ? error?.message : 'Internal server error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
@@ -55,10 +54,9 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(renamedThread, { status: 200 });
   } catch (error: unknown) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    const msg =
+      error instanceof Error ? error?.message : 'Internal server error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
@@ -91,9 +89,8 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: unknown) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    const msg =
+      error instanceof Error ? error?.message : 'Internal server error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
