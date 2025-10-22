@@ -6,11 +6,7 @@ import getServerSession from '@/lib/server-session';
 
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
-import {
-  getThreadMessages,
-  getThreads,
-  userOwnsThread,
-} from '@/lib/chat/read-thread';
+import { getThreadMessages, userOwnsThread } from '@/lib/chat/read-thread';
 
 const client = new OpenAI();
 
