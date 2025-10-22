@@ -12,7 +12,6 @@ import { useModal } from '@/components/providers/ModalProvider';
 
 import ThreadTitle from '@/components/chat/ChatThread/ThreadTitle';
 import { useRouter } from 'next/navigation';
-import type { ThreadRow } from '@/db/schema';
 
 type ChatThreadProps = {
   threadId?: string;
@@ -28,13 +27,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   const [prompt, setPrompt] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<null | string>(null);
-  // derived data
-  const threads = queryClient.getQueryData(['threads', session?.user?.id]) as
-    | ThreadRow[]
-    | undefined;
-  const currentThread = threads?.find((t) => t.id === threadId);
-  const threadTitle =
-    currentThread?.title ?? (threadId ? 'Untitled thread' : 'New chat');
+
   // effects
   useEffect(() => {
     const cachedPrompt = sessionStorage.getItem('savedPrompt');

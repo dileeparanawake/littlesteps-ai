@@ -21,8 +21,12 @@ async function fetchThreadMessages(threadId: string): Promise<MessageRow[]> {
     try {
       const data = await res.json();
       throw new Error(data?.error ?? 'Failed to fetch thread messages');
-    } catch (_e) {
-      throw new Error('Failed to fetch thread messages');
+    } catch (error: unknown) {
+      const msg =
+        error instanceof Error
+          ? error?.message
+          : 'Failed to fetch thread messages';
+      throw new Error(msg);
     }
   }
   return res.json();

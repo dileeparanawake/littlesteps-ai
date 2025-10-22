@@ -2,10 +2,8 @@ import { ChatSidebar } from '@/components/chat/ChatSidebar';
 
 export default function ChatLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { threadId?: string };
 }) {
   return (
     <div className="h-full w-full flex overflow-hidden">

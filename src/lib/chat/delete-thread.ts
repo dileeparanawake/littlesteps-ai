@@ -1,9 +1,6 @@
 import { db } from '@/db/index';
 import { thread } from '@/db/schema';
-import {
-  throwIfThreadDoesNotExist,
-  throwIfUserDoesNotExist,
-} from '@/db/guards';
+import { throwIfUserDoesNotExist } from '@/db/guards';
 import { throwIfMissingFields } from '@/lib/validation';
 import { and, eq } from 'drizzle-orm';
 
