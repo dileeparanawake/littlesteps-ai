@@ -28,7 +28,7 @@ export default function Header() {
       console.log(`isPending: ${isPending}`);
       console.log(`sessionError: ${sessionError}`);
     }
-  }, [isPending, sessionError, session?.user]);
+  }, [isPending, sessionError, session?.user, setShowSignIn]);
 
   // handlers
   const handleClick = async () => {

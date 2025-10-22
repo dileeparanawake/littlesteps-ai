@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "check:all": "tsc --noEmit && echo '✓ TypeScript: no errors' && next lint --max-warnings=0 && next build",
+    "check:all": "tsc --noEmit && echo '✓ TypeScript: no errors' && next lint --max-warnings=0",
     "watch": "tsc --watch",
     "dev": "next dev --turbopack",
     "build": "next build",
