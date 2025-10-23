@@ -28,6 +28,10 @@
 .DS_Store
 *.pem
 /project_admin/
+.eslintcache
+.stylelintcache
+.cache
+.vscode/
 
 # debug
 npm-debug.log*
