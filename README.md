@@ -1,4 +1,4 @@
-# littlesteps-ai [draft]
+# littlesteps-ai
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-littlesteps--ai-blue?logo=github)](https://github.com/dileeparanawake/littlesteps-ai)
 
