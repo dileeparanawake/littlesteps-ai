@@ -35,6 +35,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // TODO: security check - is the user allowed to use this thread?
+
+    /*     if (existingThreadId) {
+      const owns = await userOwnsThread(existingThreadId, session.user.id);
+      if (!owns) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    } */
+
     // If a threadId is passed, reuse it; otherwise, create a new one
     const threadID = existingThreadId
       ? existingThreadId

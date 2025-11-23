@@ -32,6 +32,8 @@
 .stylelintcache
 .cache
 .vscode/
+.cursor/
+**/AGENTS.md
 
 # debug
 npm-debug.log*
