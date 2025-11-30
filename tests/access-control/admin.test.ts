@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getAdminEmails } from '@/lib/access-control/config';
+import { getAdminEmails } from '@/lib/access-control/admin';
 
 describe('getAdminEmails', () => {
   let originalEnv: string | undefined;
