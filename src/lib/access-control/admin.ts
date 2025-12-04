@@ -9,8 +9,10 @@ export function getAdminEmails(): string[] {
     return [];
   }
 
-  // Parse comma-separated string and trim whitespace
-  const emails = adminEmailsEnv.split(',').map((email) => email.trim());
+  // Parse comma-separated string, trim whitespace, and normalize to lowercase
+  const emails = adminEmailsEnv
+    .split(',')
+    .map((email) => email.trim().toLowerCase());
 
   // Filter to only include valid email addresses
   const validEmails = emails.filter((email) => {
