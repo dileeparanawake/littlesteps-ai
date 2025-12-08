@@ -93,23 +93,30 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const session = await getServerSession();
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/chat', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
+    }
+
     const { searchParams } = new URL(req.url);
     const threadId = searchParams.get('threadId');
     if (!threadId) {
       return NextResponse.json({ error: 'Missing threadId' }, { status: 400 });
     }
 
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // After access control passes, session.user is guaranteed to exist for authenticated routes
+    const userId = session!.user!.id;
 
-    const isUserOwner = await userOwnsThread(threadId, session.user.id);
+    const isUserOwner = await userOwnsThread(threadId, userId);
     if (!isUserOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch messages for this
+    // Fetch messages for this thread
     const messages = await getThreadMessages(threadId);
 
     return NextResponse.json(messages, { status: 200 });

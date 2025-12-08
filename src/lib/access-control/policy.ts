@@ -19,4 +19,5 @@ export type RoutePolicy = Record<string, AccessLevel>;
  */
 export const routePolicy: RoutePolicy = {
   '/api/chat': 'admin',
+  '/api/threads': 'admin',
 };
