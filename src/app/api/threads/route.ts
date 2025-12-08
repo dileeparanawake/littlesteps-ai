@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { threadTitleSchema, threadIdSchema } from '@/lib/validation/thread';
 import getServerSession from '@/lib/server-session';
+import {
+  enforceAccess,
+  handleAccessDenial,
+} from '@/lib/access-control/enforce';
 import { getThreads } from '@/lib/chat/read-thread';
 import { userOwnsThread } from '@/lib/chat/read-thread';
 import { renameThread } from '@/lib/chat/update-thread';
@@ -9,10 +13,15 @@ import { deleteThread } from '@/lib/chat/delete-thread';
 export async function GET() {
   try {
     const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/threads', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
     }
-    const threads = await getThreads(session.user.id);
+
+    const threads = await getThreads(session!.user!.id);
 
     return NextResponse.json(threads, { status: 200 });
   } catch (error: unknown) {
