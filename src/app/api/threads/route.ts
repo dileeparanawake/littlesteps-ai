@@ -34,8 +34,12 @@ export async function GET() {
 export async function PATCH(req: Request) {
   try {
     const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/threads', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
     }
 
     const json = await req.json().catch(() => ({}));
@@ -48,11 +52,15 @@ export async function PATCH(req: Request) {
 
     const { threadId, title } = parsed.data;
 
-    if (!(await userOwnsThread(threadId, session.user.id))) {
+    if (!(await userOwnsThread(threadId, session!.user!.id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const renamedThread = await renameThread(session.user.id, threadId, title);
+    const renamedThread = await renameThread(
+      session!.user!.id,
+      threadId,
+      title,
+    );
 
     if (!renamedThread) {
       return NextResponse.json(
