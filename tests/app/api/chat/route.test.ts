@@ -1,6 +1,7 @@
 // tests for Slice 1, Block D — Guarded chat route integration
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { NextResponse } from 'next/server';
 import type { Session } from '@/lib/server-session';
 
 // --------------------------------------------------------------------------
@@ -13,10 +14,12 @@ vi.mock('@/lib/server-session', () => ({
   default: () => mockGetServerSession(),
 }));
 
-// Mock enforceAccess
+// Mock enforceAccess and handleAccessDenial
 const mockEnforceAccess = vi.fn();
+const mockHandleAccessDenial = vi.fn();
 vi.mock('@/lib/access-control/enforce', () => ({
   enforceAccess: (...args: unknown[]) => mockEnforceAccess(...args),
+  handleAccessDenial: (...args: unknown[]) => mockHandleAccessDenial(...args),
 }));
 
 // Mock business logic functions
@@ -111,6 +114,16 @@ describe('POST /api/chat access control integration', () => {
     mockGetThreadMessages.mockResolvedValue([
       { role: 'user', content: 'Hello' },
     ]);
+    // Default: handleAccessDenial mimics real behavior using NextResponse
+    mockHandleAccessDenial.mockImplementation((accessResult) => {
+      if (accessResult.accessGranted === false) {
+        return NextResponse.json(
+          { error: accessResult.error },
+          { status: accessResult.status },
+        );
+      }
+      return null;
+    });
   });
 
   afterEach(() => {

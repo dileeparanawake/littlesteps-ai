@@ -321,3 +321,54 @@ describe('enforceAccess', () => {
     expect(result).toEqual({ accessGranted: true });
   });
 });
+
+// --------------------------------------------------------------------------
+// handleAccessDenial tests
+// --------------------------------------------------------------------------
+
+describe('handleAccessDenial', () => {
+  it('returns null when access is granted', async () => {
+    const { handleAccessDenial } = await import('@/lib/access-control/enforce');
+
+    const accessResult = { accessGranted: true } as const;
+    const result = handleAccessDenial(accessResult);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns NextResponse with 401 status and error message when access denied with 401', async () => {
+    const { handleAccessDenial } = await import('@/lib/access-control/enforce');
+
+    const accessResult = {
+      accessGranted: false,
+      status: 401,
+      error: 'Unauthorized - please sign in',
+    } as const;
+
+    const response = handleAccessDenial(accessResult);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(401);
+
+    const body = await response!.json();
+    expect(body).toEqual({ error: 'Unauthorized - please sign in' });
+  });
+
+  it('returns NextResponse with 403 status and error message when access denied with 403', async () => {
+    const { handleAccessDenial } = await import('@/lib/access-control/enforce');
+
+    const accessResult = {
+      accessGranted: false,
+      status: 403,
+      error: 'Forbidden - admin access only',
+    } as const;
+
+    const response = handleAccessDenial(accessResult);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(403);
+
+    const body = await response!.json();
+    expect(body).toEqual({ error: 'Forbidden - admin access only' });
+  });
+});

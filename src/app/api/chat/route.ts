@@ -3,7 +3,10 @@ import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
 import getServerSession from '@/lib/server-session';
-import { enforceAccess } from '@/lib/access-control/enforce';
+import {
+  enforceAccess,
+  handleAccessDenial,
+} from '@/lib/access-control/enforce';
 
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
@@ -21,11 +24,9 @@ export async function POST(req: Request) {
 
   // Enforce access control via centralized policy
   const accessResult = enforceAccess('/api/chat', session);
-  if (accessResult.accessGranted === false) {
-    return NextResponse.json(
-      { error: accessResult.error },
-      { status: accessResult.status },
-    );
+  const denialResponse = handleAccessDenial(accessResult);
+  if (denialResponse) {
+    return denialResponse;
   }
 
   // After access control passes, session.user is guaranteed to exist for authenticated routes

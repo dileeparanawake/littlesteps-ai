@@ -1,5 +1,6 @@
 // src/lib/access-control/enforce.ts
 
+import { NextResponse } from 'next/server';
 import type { AccessLevel, RoutePolicy } from './policy';
 import type { Session } from '@/lib/server-session';
 import { getAdminEmails } from './admin';
@@ -143,4 +144,22 @@ export function enforceAccess(
 
   // Make access decision
   return decideAccess(level, authContext, adminEmails);
+}
+
+/**
+ * Converts an AccessResult to a NextResponse if access is denied.
+ * Returns null if access is granted (caller should proceed with business logic).
+ * @param accessResult - The access decision result
+ * @returns NextResponse with error if denied, null if granted
+ */
+export function handleAccessDenial(
+  accessResult: AccessResult,
+): NextResponse | null {
+  if (accessResult.accessGranted === false) {
+    return NextResponse.json(
+      { error: accessResult.error },
+      { status: accessResult.status },
+    );
+  }
+  return null;
 }
