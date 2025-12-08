@@ -3,6 +3,8 @@ import { z } from 'zod';
 const emailSchema = z.email();
 
 export function getAdminEmails(): string[] {
+  // Raw comma-separated string from environment variable
+  // Expected format: "email1@example.com,email2@example.com"
   const adminEmailsEnv = process.env.ADMIN_EMAILS;
 
   if (!adminEmailsEnv || adminEmailsEnv.trim() === '') {

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
 import getServerSession from '@/lib/server-session';
+import { enforceAccess } from '@/lib/access-control/enforce';
 
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
@@ -18,15 +19,21 @@ export async function POST(req: Request) {
   const session = await getServerSession();
   // console.log('User session:', session?.user?.email ?? 'no session');
 
+  // Enforce access control via centralized policy
+  const accessResult = enforceAccess('/api/chat', session);
+  if (accessResult.accessGranted === false) {
+    return NextResponse.json(
+      { error: accessResult.error },
+      { status: accessResult.status },
+    );
+  }
+
+  // After access control passes, session.user is guaranteed to exist for authenticated routes
+  // (enforceAccess ensures this for routes requiring authentication)
+  const userId = session!.user!.id;
+
   // validate input
   try {
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - please sign in' },
-        { status: 401 },
-      );
-    }
-
     // throw error if prompt is not a string or is empty
     if (typeof prompt !== 'string' || prompt.trim() === '') {
       return NextResponse.json(
@@ -38,7 +45,7 @@ export async function POST(req: Request) {
     // TODO: security check - is the user allowed to use this thread?
 
     /*     if (existingThreadId) {
-      const owns = await userOwnsThread(existingThreadId, session.user.id);
+      const owns = await userOwnsThread(existingThreadId, userId);
       if (!owns) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
@@ -47,7 +54,7 @@ export async function POST(req: Request) {
     // If a threadId is passed, reuse it; otherwise, create a new one
     const threadID = existingThreadId
       ? existingThreadId
-      : (await createThread(session.user.id)).id;
+      : (await createThread(userId)).id;
 
     // add user prompt to thread
     await addMessageToThread(threadID, 'user', prompt);
