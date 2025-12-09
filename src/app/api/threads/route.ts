@@ -5,6 +5,7 @@ import {
   enforceAccess,
   handleAccessDenial,
 } from '@/lib/access-control/enforce';
+import { assertSessionHasUser } from '@/lib/access-control/assert-session-user';
 import { getThreads } from '@/lib/chat/read-thread';
 import { userOwnsThread } from '@/lib/chat/read-thread';
 import { renameThread } from '@/lib/chat/update-thread';
@@ -21,7 +22,10 @@ export async function GET() {
       return denialResponse;
     }
 
-    const threads = await getThreads(session!.user!.id);
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
+
+    const threads = await getThreads(session.user.id);
 
     return NextResponse.json(threads, { status: 200 });
   } catch (error: unknown) {
@@ -42,6 +46,9 @@ export async function PATCH(req: Request) {
       return denialResponse;
     }
 
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
+
     const json = await req.json().catch(() => ({}));
     const parsed = threadTitleSchema.safeParse(json);
 
@@ -52,15 +59,11 @@ export async function PATCH(req: Request) {
 
     const { threadId, title } = parsed.data;
 
-    if (!(await userOwnsThread(threadId, session!.user!.id))) {
+    if (!(await userOwnsThread(threadId, session.user.id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const renamedThread = await renameThread(
-      session!.user!.id,
-      threadId,
-      title,
-    );
+    const renamedThread = await renameThread(session.user.id, threadId, title);
 
     if (!renamedThread) {
       return NextResponse.json(
@@ -88,6 +91,9 @@ export async function DELETE(req: Request) {
       return denialResponse;
     }
 
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
+
     const json = await req.json().catch(() => ({}));
     const parsed = threadIdSchema.safeParse(json);
 
@@ -98,11 +104,11 @@ export async function DELETE(req: Request) {
 
     const { threadId } = parsed.data;
 
-    if (!(await userOwnsThread(threadId, session!.user!.id))) {
+    if (!(await userOwnsThread(threadId, session.user.id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const deletedThread = await deleteThread(session!.user!.id, threadId);
+    const deletedThread = await deleteThread(session.user.id, threadId);
 
     if (!deletedThread.success) {
       return NextResponse.json({ error: 'Thread not found' }, { status: 404 });

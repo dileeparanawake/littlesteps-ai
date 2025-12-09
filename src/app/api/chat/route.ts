@@ -7,6 +7,7 @@ import {
   enforceAccess,
   handleAccessDenial,
 } from '@/lib/access-control/enforce';
+import { assertSessionHasUser } from '@/lib/access-control/assert-session-user';
 
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
@@ -29,9 +30,9 @@ export async function POST(req: Request) {
     return denialResponse;
   }
 
-  // After access control passes, session.user is guaranteed to exist for authenticated routes
-  // (enforceAccess ensures this for routes requiring authentication)
-  const userId = session!.user!.id;
+  // After access control passes, assert session.user exists
+  assertSessionHasUser(session);
+  const userId = session.user.id;
 
   // validate input
   try {
@@ -102,16 +103,16 @@ export async function GET(req: Request) {
       return denialResponse;
     }
 
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
+
     const { searchParams } = new URL(req.url);
     const threadId = searchParams.get('threadId');
     if (!threadId) {
       return NextResponse.json({ error: 'Missing threadId' }, { status: 400 });
     }
 
-    // After access control passes, session.user is guaranteed to exist for authenticated routes
-    const userId = session!.user!.id;
-
-    const isUserOwner = await userOwnsThread(threadId, userId);
+    const isUserOwner = await userOwnsThread(threadId, session.user.id);
     if (!isUserOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
