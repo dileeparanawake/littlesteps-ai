@@ -16,27 +16,26 @@ import { getThreadMessages, userOwnsThread } from '@/lib/chat/read-thread';
 const client = new OpenAI();
 
 export async function POST(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const existingThreadId = searchParams.get('threadId');
-  const { prompt } = await req.json();
-
-  const session = await getServerSession();
-  // console.log('User session:', session?.user?.email ?? 'no session');
-
-  // Enforce access control via centralized policy
-  const accessResult = enforceAccess('/api/chat', session);
-  const denialResponse = handleAccessDenial(accessResult);
-  if (denialResponse) {
-    return denialResponse;
-  }
-
-  // After access control passes, assert session.user exists
-  assertSessionHasUser(session);
-  const userId = session.user.id;
-
-  // validate input
   try {
-    // throw error if prompt is not a string or is empty
+    // 1. Authenticate: get session
+    const session = await getServerSession();
+
+    // 2. Authorize: route-level access control (fail-fast)
+    const accessResult = enforceAccess('/api/chat', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
+    }
+
+    // 3. Assert session shape: ensure session.user exists
+    assertSessionHasUser(session);
+    const userId = session.user.id;
+
+    // 4. Parse and validate input
+    const { searchParams } = new URL(req.url);
+    const existingThreadId = searchParams.get('threadId');
+    const { prompt } = await req.json();
+
     if (typeof prompt !== 'string' || prompt.trim() === '') {
       return NextResponse.json(
         { error: 'Invalid request body' },
@@ -44,16 +43,15 @@ export async function POST(req: Request) {
       );
     }
 
-    // TODO: security check - is the user allowed to use this thread?
-
-    /*     if (existingThreadId) {
+    // 5. Resource ownership check: verify user owns thread before reusing it
+    if (existingThreadId) {
       const owns = await userOwnsThread(existingThreadId, userId);
       if (!owns) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
-    } */
+    }
 
-    // If a threadId is passed, reuse it; otherwise, create a new one
+    // 6. Business logic: create or reuse thread
     const threadID = existingThreadId
       ? existingThreadId
       : (await createThread(userId)).id;
@@ -70,7 +68,7 @@ export async function POST(req: Request) {
       content: message.content,
     }));
 
-    // get open ai response (assistant message)
+    // 7. External calls: OpenAI
     const completion = await client.chat.completions.create({
       model: 'gpt-5-nano',
       messages: messagesContent,
@@ -84,6 +82,7 @@ export async function POST(req: Request) {
       completion.choices[0].message.content,
     );
 
+    // 8. Respond
     return NextResponse.json({ threadID }, { status: 200 });
   } catch (error: unknown) {
     const message =

@@ -37,7 +37,10 @@ export async function getLastMessage(
   return lastMessage[0];
 }
 
-export async function userOwnsThread(threadId: string, userId: string) {
+export async function userOwnsThread(
+  threadId: string,
+  userId: string,
+): Promise<boolean> {
   throwIfMissingFields({ threadId, userId });
   await throwIfThreadDoesNotExist(threadId);
 

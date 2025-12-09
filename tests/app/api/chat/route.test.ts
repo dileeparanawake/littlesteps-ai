@@ -23,6 +23,13 @@ vi.mock('@/lib/access-control/enforce', () => ({
   handleAccessDenial: (...args: unknown[]) => mockHandleAccessDenial(...args),
 }));
 
+// Mock assertSessionHasUser
+const mockAssertSessionHasUser = vi.fn();
+vi.mock('@/lib/access-control/assert-session-user', () => ({
+  assertSessionHasUser: (...args: unknown[]) =>
+    mockAssertSessionHasUser(...args),
+}));
+
 // Mock business logic functions
 const mockCreateThread = vi.fn();
 const mockAddMessageToThread = vi.fn();
@@ -235,6 +242,129 @@ describe('POST /api/chat access control integration', () => {
     // Assert: enforceAccess called with correct arguments
     expect(mockEnforceAccess).toHaveBeenCalledTimes(1);
     expect(mockEnforceAccess).toHaveBeenCalledWith('/api/chat', session);
+  });
+
+  // --------------------------------------------------------------------------
+  // Block E: Fail-fast ordering and ownership tests
+  // --------------------------------------------------------------------------
+
+  it('does not parse request body when access is denied', async () => {
+    // Arrange: no session, enforceAccess denies with 401
+    mockGetServerSession.mockResolvedValue(null);
+    mockEnforceAccess.mockReturnValue({
+      accessGranted: false,
+      status: 401,
+      error: 'Unauthorized - please sign in',
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    // Create a request with a spy on json() to track if it's called
+    const req = createPostRequest('Hello');
+    const jsonSpy = vi.spyOn(req, 'json');
+
+    // Act
+    const response = await POST(req);
+    await response.json();
+
+    // Assert: req.json was never called (body not parsed when access denied)
+    expect(jsonSpy).not.toHaveBeenCalled();
+
+    // Assert: business logic was NOT invoked
+    expect(mockCreateThread).not.toHaveBeenCalled();
+    expect(mockAddMessageToThread).not.toHaveBeenCalled();
+    expect(mockGetThreadMessages).not.toHaveBeenCalled();
+    expect(mockCreateCompletion).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 when threadId provided but user does not own thread', async () => {
+    // Arrange: valid session, access granted, but user doesn't own thread
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockUserOwnsThread.mockResolvedValue(false);
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello', 'thread-456');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: 403 response with Forbidden error
+    expect(response.status).toBe(403);
+    expect(body).toEqual({ error: 'Forbidden' });
+
+    // Assert: ownership check was called with correct args
+    expect(mockUserOwnsThread).toHaveBeenCalledWith('thread-456', 'user-123');
+
+    // Assert: thread operations were NOT invoked (ownership check blocked)
+    expect(mockGetThreadMessages).not.toHaveBeenCalled();
+    expect(mockAddMessageToThread).not.toHaveBeenCalled();
+    expect(mockCreateCompletion).not.toHaveBeenCalled();
+  });
+
+  it('proceeds with existing thread when threadId provided and user owns thread', async () => {
+    // Arrange: valid session, access granted, user owns thread
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockUserOwnsThread.mockResolvedValue(true);
+    mockGetThreadMessages.mockResolvedValue([
+      { role: 'user', content: 'Previous message' },
+    ]);
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello', 'thread-456');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response with existing threadID
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ threadID: 'thread-456' });
+
+    // Assert: ownership check was called
+    expect(mockUserOwnsThread).toHaveBeenCalledWith('thread-456', 'user-123');
+
+    // Assert: getThreadMessages was called (not createThread)
+    expect(mockGetThreadMessages).toHaveBeenCalledWith('thread-456');
+    expect(mockCreateThread).not.toHaveBeenCalled();
+
+    // Assert: OpenAI and message operations were invoked
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    expect(mockCreateCompletion).toHaveBeenCalled();
+  });
+
+  it('creates new thread when no threadId provided', async () => {
+    // Arrange: valid session, access granted, no threadId
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response with new threadID
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ threadID: 'thread-123' });
+
+    // Assert: createThread was called (not userOwnsThread)
+    expect(mockCreateThread).toHaveBeenCalledWith('user-123');
+    expect(mockUserOwnsThread).not.toHaveBeenCalled();
+
+    // Assert: business logic proceeded normally
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    expect(mockGetThreadMessages).toHaveBeenCalled();
+    expect(mockCreateCompletion).toHaveBeenCalled();
   });
 });
 
