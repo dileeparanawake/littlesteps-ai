@@ -80,8 +80,12 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/threads', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
     }
 
     const json = await req.json().catch(() => ({}));
@@ -94,11 +98,11 @@ export async function DELETE(req: Request) {
 
     const { threadId } = parsed.data;
 
-    if (!(await userOwnsThread(threadId, session.user.id))) {
+    if (!(await userOwnsThread(threadId, session!.user!.id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const deletedThread = await deleteThread(session.user.id, threadId);
+    const deletedThread = await deleteThread(session!.user!.id, threadId);
 
     if (!deletedThread.success) {
       return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
