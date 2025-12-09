@@ -12,3 +12,6 @@ const getServerSession = async () => {
 };
 
 export default getServerSession;
+
+// derive the Session type from getServerSession
+export type Session = Awaited<ReturnType<typeof getServerSession>>;

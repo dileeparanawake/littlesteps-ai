@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { threadTitleSchema, threadIdSchema } from '@/lib/validation/thread';
 import getServerSession from '@/lib/server-session';
+import {
+  enforceAccess,
+  handleAccessDenial,
+} from '@/lib/access-control/enforce';
+import { assertSessionHasUser } from '@/lib/access-control/assert-session-user';
 import { getThreads } from '@/lib/chat/read-thread';
 import { userOwnsThread } from '@/lib/chat/read-thread';
 import { renameThread } from '@/lib/chat/update-thread';
@@ -9,9 +14,17 @@ import { deleteThread } from '@/lib/chat/delete-thread';
 export async function GET() {
   try {
     const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/threads', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
     }
+
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
+
     const threads = await getThreads(session.user.id);
 
     return NextResponse.json(threads, { status: 200 });
@@ -25,9 +38,16 @@ export async function GET() {
 export async function PATCH(req: Request) {
   try {
     const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/threads', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
     }
+
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
 
     const json = await req.json().catch(() => ({}));
     const parsed = threadTitleSchema.safeParse(json);
@@ -63,9 +83,16 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Enforce access control via centralized policy
+    const accessResult = enforceAccess('/api/threads', session);
+    const denialResponse = handleAccessDenial(accessResult);
+    if (denialResponse) {
+      return denialResponse;
     }
+
+    // After access control passes, assert session.user exists
+    assertSessionHasUser(session);
 
     const json = await req.json().catch(() => ({}));
     const parsed = threadIdSchema.safeParse(json);
