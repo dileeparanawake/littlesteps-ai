@@ -1,4 +1,4 @@
-// tests for Block C — OpenAI adapter with caching
+// tests for Block C — OpenAI adapter with caching (updated for Block D — provider-agnostic naming)
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Message } from '@/lib/ai/types';
@@ -34,10 +34,10 @@ const sampleMessages: Message[] = [
 ];
 
 // --------------------------------------------------------------------------
-// OpenAICompletionService unit tests
+// OpenAIResponseService unit tests
 // --------------------------------------------------------------------------
 
-describe('OpenAICompletionService', () => {
+describe('OpenAIResponseService', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Default: successful response
@@ -58,13 +58,12 @@ describe('OpenAICompletionService', () => {
     });
 
     // Import fresh to apply mocks
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act
-    const result =
-      await OpenAICompletionService.generateCompletion(sampleMessages);
+    const result = await OpenAIResponseService.generateResponse(sampleMessages);
 
     // Assert: returns the content string
     expect(result).toBe(expectedContent);
@@ -87,12 +86,12 @@ describe('OpenAICompletionService', () => {
       choices: [{ message: { content: 'Cached response' } }],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act
-    await OpenAICompletionService.generateCompletion(sampleMessages, {
+    await OpenAIResponseService.generateResponse(sampleMessages, {
       threadId,
     });
 
@@ -114,12 +113,12 @@ describe('OpenAICompletionService', () => {
       choices: [{ message: { content: 'Uncached response' } }],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act: call without options
-    await OpenAICompletionService.generateCompletion(sampleMessages);
+    await OpenAIResponseService.generateResponse(sampleMessages);
 
     // Assert: OpenAI SDK called without prompt_cache_key
     expect(mockCreateCompletion).toHaveBeenCalledTimes(1);
@@ -138,12 +137,12 @@ describe('OpenAICompletionService', () => {
       choices: [{ message: { content: 'Uncached response' } }],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act: call with empty options object
-    await OpenAICompletionService.generateCompletion(sampleMessages, {});
+    await OpenAIResponseService.generateResponse(sampleMessages, {});
 
     // Assert: OpenAI SDK called without prompt_cache_key
     expect(mockCreateCompletion).toHaveBeenCalledTimes(1);
@@ -157,13 +156,13 @@ describe('OpenAICompletionService', () => {
       choices: [{ message: { content: null } }],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act & Assert: should throw descriptive error
     await expect(
-      OpenAICompletionService.generateCompletion(sampleMessages),
+      OpenAIResponseService.generateResponse(sampleMessages),
     ).rejects.toThrow('No content received from OpenAI');
   });
 
@@ -173,13 +172,13 @@ describe('OpenAICompletionService', () => {
       choices: [{ message: {} }],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act & Assert: should throw descriptive error
     await expect(
-      OpenAICompletionService.generateCompletion(sampleMessages),
+      OpenAIResponseService.generateResponse(sampleMessages),
     ).rejects.toThrow('No content received from OpenAI');
   });
 
@@ -189,13 +188,13 @@ describe('OpenAICompletionService', () => {
       choices: [{}],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act & Assert: should throw descriptive error
     await expect(
-      OpenAICompletionService.generateCompletion(sampleMessages),
+      OpenAIResponseService.generateResponse(sampleMessages),
     ).rejects.toThrow('No content received from OpenAI');
   });
 
@@ -205,13 +204,13 @@ describe('OpenAICompletionService', () => {
       choices: [],
     });
 
-    const { OpenAICompletionService } = await import(
-      '@/lib/ai/openai-completion-service'
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
     );
 
     // Act & Assert: should throw descriptive error
     await expect(
-      OpenAICompletionService.generateCompletion(sampleMessages),
+      OpenAIResponseService.generateResponse(sampleMessages),
     ).rejects.toThrow('No content received from OpenAI');
   });
 });

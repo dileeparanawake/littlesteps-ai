@@ -5,13 +5,13 @@ export interface Message {
   content: string;
 }
 
-export interface CompletionOptions {
+export interface ResponseOptions {
   threadId?: string;
 }
 
-export interface AICompletionService {
-  generateCompletion(
+export interface AIResponseService {
+  generateResponse(
     messages: Message[],
-    options?: CompletionOptions,
+    options?: ResponseOptions,
   ): Promise<string>;
 }
