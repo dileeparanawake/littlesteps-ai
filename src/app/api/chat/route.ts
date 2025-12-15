@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { OpenAI } from 'openai';
-
 import getServerSession from '@/lib/server-session';
 import {
   enforceAccess,
@@ -12,8 +10,7 @@ import { assertSessionHasUser } from '@/lib/access-control/assert-session-user';
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import { getThreadMessages, userOwnsThread } from '@/lib/chat/read-thread';
-
-const client = new OpenAI();
+import { OpenAIResponseService } from '@/lib/ai/openai-response-service';
 
 export async function POST(req: Request) {
   try {
@@ -68,19 +65,14 @@ export async function POST(req: Request) {
       content: message.content,
     }));
 
-    // 7. External calls: OpenAI
-    const completion = await client.chat.completions.create({
-      model: 'gpt-5-nano',
-      messages: messagesContent,
-      reasoning_effort: 'minimal',
-    });
+    // 7. External calls: AI adapter
+    const assistantContent = await OpenAIResponseService.generateResponse(
+      messagesContent,
+      { threadId: threadID },
+    );
 
     // add assistant message to thread
-    await addMessageToThread(
-      threadID,
-      'assistant',
-      completion.choices[0].message.content,
-    );
+    await addMessageToThread(threadID, 'assistant', assistantContent);
 
     // 8. Respond
     return NextResponse.json({ threadID }, { status: 200 });
