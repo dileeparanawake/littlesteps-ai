@@ -49,22 +49,13 @@ vi.mock('@/lib/chat/read-thread', () => ({
   userOwnsThread: (...args: unknown[]) => mockUserOwnsThread(...args),
 }));
 
-const mockCreateCompletion = vi.fn().mockResolvedValue({
-  choices: [{ message: { content: 'AI response' } }],
-});
+// Mock AI adapter service
+const mockGenerateResponse = vi.fn().mockResolvedValue('AI response');
 
-const mockOpenAIInstance = {
-  chat: {
-    completions: {
-      create: mockCreateCompletion,
-    },
+vi.mock('@/lib/ai/openai-response-service', () => ({
+  OpenAIResponseService: {
+    generateResponse: mockGenerateResponse,
   },
-};
-
-// Mock OpenAI client
-vi.mock('openai', () => ({
-  __esModule: true,
-  OpenAI: vi.fn().mockImplementation(() => mockOpenAIInstance),
 }));
 
 // --------------------------------------------------------------------------
@@ -120,10 +111,8 @@ function createGetRequest(threadId: string): Request {
 describe('POST /api/chat access control integration', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    // Re-establish OpenAI mock after reset
-    mockCreateCompletion.mockResolvedValue({
-      choices: [{ message: { content: 'AI response' } }],
-    });
+    // Re-establish adapter mock after reset
+    mockGenerateResponse.mockResolvedValue('AI response');
     // Default: business logic succeeds
     mockCreateThread.mockResolvedValue({ id: 'thread-123' });
     mockAddMessageToThread.mockResolvedValue(undefined);
@@ -172,6 +161,7 @@ describe('POST /api/chat access control integration', () => {
     expect(mockCreateThread).not.toHaveBeenCalled();
     expect(mockAddMessageToThread).not.toHaveBeenCalled();
     expect(mockGetThreadMessages).not.toHaveBeenCalled();
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
   });
 
   it('returns 403 with error message when enforceAccess denies for authorization; business logic not invoked', async () => {
@@ -200,6 +190,7 @@ describe('POST /api/chat access control integration', () => {
     expect(mockCreateThread).not.toHaveBeenCalled();
     expect(mockAddMessageToThread).not.toHaveBeenCalled();
     expect(mockGetThreadMessages).not.toHaveBeenCalled();
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
   });
 
   it('returns success response when accessGranted is true; business logic is executed', async () => {
@@ -224,6 +215,11 @@ describe('POST /api/chat access control integration', () => {
     expect(mockCreateThread).toHaveBeenCalledWith('user-123');
     expect(mockAddMessageToThread).toHaveBeenCalled();
     expect(mockGetThreadMessages).toHaveBeenCalled();
+    // Assert: adapter was called with correct parameters
+    expect(mockGenerateResponse).toHaveBeenCalledWith(
+      [{ role: 'user', content: 'Hello' }],
+      { threadId: 'thread-123' },
+    );
   });
 
   it('calls enforceAccess with "/api/chat" and the session returned by getServerSession', async () => {
@@ -274,7 +270,7 @@ describe('POST /api/chat access control integration', () => {
     expect(mockCreateThread).not.toHaveBeenCalled();
     expect(mockAddMessageToThread).not.toHaveBeenCalled();
     expect(mockGetThreadMessages).not.toHaveBeenCalled();
-    expect(mockCreateCompletion).not.toHaveBeenCalled();
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
   });
 
   it('returns 403 when threadId provided but user does not own thread', async () => {
@@ -302,7 +298,7 @@ describe('POST /api/chat access control integration', () => {
     // Assert: thread operations were NOT invoked (ownership check blocked)
     expect(mockGetThreadMessages).not.toHaveBeenCalled();
     expect(mockAddMessageToThread).not.toHaveBeenCalled();
-    expect(mockCreateCompletion).not.toHaveBeenCalled();
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
   });
 
   it('proceeds with existing thread when threadId provided and user owns thread', async () => {
@@ -334,9 +330,12 @@ describe('POST /api/chat access control integration', () => {
     expect(mockGetThreadMessages).toHaveBeenCalledWith('thread-456');
     expect(mockCreateThread).not.toHaveBeenCalled();
 
-    // Assert: OpenAI and message operations were invoked
+    // Assert: adapter and message operations were invoked
     expect(mockAddMessageToThread).toHaveBeenCalled();
-    expect(mockCreateCompletion).toHaveBeenCalled();
+    expect(mockGenerateResponse).toHaveBeenCalledWith(
+      [{ role: 'user', content: 'Previous message' }],
+      { threadId: 'thread-456' },
+    );
   });
 
   it('creates new thread when no threadId provided', async () => {
@@ -364,7 +363,10 @@ describe('POST /api/chat access control integration', () => {
     // Assert: business logic proceeded normally
     expect(mockAddMessageToThread).toHaveBeenCalled();
     expect(mockGetThreadMessages).toHaveBeenCalled();
-    expect(mockCreateCompletion).toHaveBeenCalled();
+    expect(mockGenerateResponse).toHaveBeenCalledWith(
+      [{ role: 'user', content: 'Hello' }],
+      { threadId: 'thread-123' },
+    );
   });
 });
 
