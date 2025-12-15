@@ -10,7 +10,7 @@ import {
   getThreads,
 } from '@/lib/chat/read-thread';
 import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
-import { MessageRole } from '@/db/enums';
+import type { MessageRole } from '@/lib/chat/message-roles';
 
 const testUser = makeTestUser();
 

@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { message } from '@/db/schema';
 import { throwIfThreadDoesNotExist } from '@/db/guards';
-import { MessageRole } from '@/db/enums';
+import type { MessageRole } from '@/lib/chat/message-roles';
 import { throwIfMissingFields } from '@/lib/validation';
 import { eq, desc } from 'drizzle-orm';
 import { SYSTEM_MESSAGE } from './system-message';
