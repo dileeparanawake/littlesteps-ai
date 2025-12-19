@@ -1,6 +1,9 @@
 import { db } from '@/db';
 import { message, thread } from '@/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+import type { Session } from '@/lib/server-session';
+import { getAdminEmails } from '@/lib/access-control/admin';
 
 /**
  * Result of a usage limit check.
@@ -117,4 +120,59 @@ export async function checkWeeklyUsageLimit(
 
   // Usage is below the cap, allow the request
   return { allowed: true };
+}
+
+/**
+ * Internal helpers object that can be spied on in tests.
+ * This pattern allows vitest spies to intercept calls to these functions.
+ */
+export const usageLimitInternal = {
+  getAdminEmails,
+  getWeeklyCapTokens,
+  checkWeeklyUsageLimit,
+};
+
+/**
+ * Enforces usage limit for a session by orchestrating admin detection,
+ * cap retrieval, usage checking, and response generation.
+ * Returns null if the request is allowed to proceed, or a NextResponse
+ * with HTTP 429 status if the usage limit is exceeded.
+ * @param session - The authenticated session
+ * @returns Promise resolving to NextResponse (denied) or null (allowed)
+ */
+export async function enforceUsageLimit(
+  session: Session,
+): Promise<NextResponse | null> {
+  // Extract user ID from session
+  const userId = session.user.id;
+
+  // Get admin email list
+  const adminEmails = usageLimitInternal.getAdminEmails();
+
+  // Extract and lowercase user email
+  const userEmail = session.user.email?.toLowerCase() ?? '';
+
+  // Determine admin status
+  const isAdmin = adminEmails.includes(userEmail);
+
+  // Get the weekly token cap
+  const capTokens = usageLimitInternal.getWeeklyCapTokens();
+
+  // Check usage limit
+  const usageCheckResult = await usageLimitInternal.checkWeeklyUsageLimit(
+    userId,
+    isAdmin,
+    capTokens,
+  );
+
+  // If usage check denies, return 429 response
+  if (!usageCheckResult.allowed) {
+    return NextResponse.json(
+      { error: usageCheckResult.error },
+      { status: 429 },
+    );
+  }
+
+  // Usage check allows, return null to allow request to proceed
+  return null;
 }

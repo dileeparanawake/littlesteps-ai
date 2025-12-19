@@ -8,6 +8,7 @@ import {
   it,
   vi,
 } from 'vitest';
+import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { message } from '@/db/schema';
 import { createThread } from '@/lib/chat/create-thread';
@@ -22,6 +23,9 @@ import {
   checkWeeklyUsageLimit,
 } from '@/lib/chat/usage-limit';
 import type { AIResponseUsage } from '@/lib/ai/types';
+import type { Session } from '@/lib/server-session';
+import * as adminModule from '@/lib/access-control/admin';
+import * as usageLimitModule from '@/lib/chat/usage-limit';
 
 describe('getCurrentWeekRangeUtc', () => {
   it('returns valid date range with start before end', () => {
@@ -484,5 +488,296 @@ describe.sequential('checkWeeklyUsageLimit', () => {
     expect(result.error).toBeDefined();
     expect(typeof result.error).toBe('string');
     expect(result.error).toBe('Usage limit exceeded');
+  });
+});
+
+// --------------------------------------------------------------------------
+// Mock setup for enforceUsageLimit tests
+// --------------------------------------------------------------------------
+
+function createMockSession(email?: string): Session {
+  return {
+    user: {
+      id: 'user-123',
+      email: email,
+      name: 'Test User',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    session: {
+      id: 'session-123',
+      userId: 'user-123',
+      expiresAt: new Date(Date.now() + 86400000),
+      token: 'test-token',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ipAddress: null,
+      userAgent: null,
+    },
+  } as Session;
+}
+
+describe('enforceUsageLimit', () => {
+  let enforceUsageLimit: (session: Session) => Promise<NextResponse | null>;
+  let getAdminEmailsSpy: ReturnType<typeof vi.spyOn>;
+  let getWeeklyCapTokensSpy: ReturnType<typeof vi.spyOn>;
+  let checkWeeklyUsageLimitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeAll(async () => {
+    // Dynamically import enforceUsageLimit (it may not exist yet)
+    const module = await import('@/lib/chat/usage-limit');
+    if ('enforceUsageLimit' in module) {
+      enforceUsageLimit = module.enforceUsageLimit;
+    } else {
+      // If function doesn't exist yet, create a placeholder that will fail tests
+      enforceUsageLimit = () => {
+        throw new Error('enforceUsageLimit not implemented yet');
+      };
+    }
+  });
+
+  beforeEach(() => {
+    // Spy on the internal helpers object
+    getAdminEmailsSpy = vi.spyOn(
+      usageLimitModule.usageLimitInternal,
+      'getAdminEmails',
+    );
+    getWeeklyCapTokensSpy = vi.spyOn(
+      usageLimitModule.usageLimitInternal,
+      'getWeeklyCapTokens',
+    );
+    checkWeeklyUsageLimitSpy = vi.spyOn(
+      usageLimitModule.usageLimitInternal,
+      'checkWeeklyUsageLimit',
+    );
+
+    // Default: non-admin user, cap allows request
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({ allowed: true });
+  });
+
+  afterEach(() => {
+    // Restore all spies
+    vi.restoreAllMocks();
+  });
+
+  it('returns null for admin users regardless of usage', async () => {
+    // Arrange: admin user with usage above cap
+    const session = createMockSession('admin@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    // Mock checkWeeklyUsageLimit to return true for admins, false for non-admins
+    checkWeeklyUsageLimitSpy.mockImplementation(
+      async (_userId: string, isAdmin: boolean) => {
+        if (isAdmin) {
+          return { allowed: true };
+        }
+        return { allowed: false, error: 'Usage limit exceeded' };
+      },
+    );
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: returns null (allows request to proceed)
+    expect(result).toBeNull();
+  });
+
+  it('returns null for non-admin users below the cap', async () => {
+    // Arrange: non-admin user with usage below cap
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({ allowed: true });
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: returns null (allows request to proceed)
+    expect(result).toBeNull();
+  });
+
+  it('returns NextResponse with 429 status for non-admin users at the cap', async () => {
+    // Arrange: non-admin user with usage exactly at cap
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({
+      allowed: false,
+      error: 'Usage limit exceeded',
+    });
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: returns NextResponse with status 429
+    expect(result).toBeInstanceOf(NextResponse);
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result.status).toBe(429);
+      const body = await result.json();
+      expect(body).toEqual({ error: 'Usage limit exceeded' });
+    }
+  });
+
+  it('returns NextResponse with 429 status for non-admin users above the cap', async () => {
+    // Arrange: non-admin user with usage above cap
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({
+      allowed: false,
+      error: 'Usage limit exceeded',
+    });
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: returns NextResponse with status 429
+    expect(result).toBeInstanceOf(NextResponse);
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result.status).toBe(429);
+      const body = await result.json();
+      expect(body).toEqual({ error: 'Usage limit exceeded' });
+    }
+  });
+
+  it('returns correct error message shape for denied requests', async () => {
+    // Arrange: non-admin user above cap
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({
+      allowed: false,
+      error: 'Usage limit exceeded',
+    });
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: response body shape is { error: string } (compatible with ErrorAlert component)
+    expect(result).not.toBeNull();
+    if (result) {
+      const body = await result.json();
+      expect(body).toHaveProperty('error');
+      expect(typeof body.error).toBe('string');
+      expect(body.error).toBe('Usage limit exceeded');
+    }
+  });
+
+  it('correctly determines admin status using session email', async () => {
+    // Arrange: admin user with lowercased email
+    const session = createMockSession('ADMIN@EXAMPLE.COM');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    // Mock checkWeeklyUsageLimit to return true for admins, false for non-admins
+    checkWeeklyUsageLimitSpy.mockImplementation(
+      async (_userId: string, isAdmin: boolean) => {
+        if (isAdmin) {
+          return { allowed: true };
+        }
+        return { allowed: false, error: 'Usage limit exceeded' };
+      },
+    );
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: admin detection logic correctly checks lowercased email against admin list
+    // Admin users should be allowed regardless of usage check result
+    expect(result).toBeNull();
+    expect(getAdminEmailsSpy).toHaveBeenCalled();
+  });
+
+  it('treats undefined session.user.email as non-admin', async () => {
+    // Arrange: session with undefined email
+    const session = createMockSession(undefined);
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({
+      allowed: false,
+      error: 'Usage limit exceeded',
+    });
+
+    // Act
+    const result = await enforceUsageLimit(session);
+
+    // Assert: returns denial response (treats as non-admin)
+    expect(result).not.toBeNull();
+    expect(result).toBeInstanceOf(NextResponse);
+    if (result) {
+      expect(result.status).toBe(429);
+      const body = await result.json();
+      expect(body).toEqual({ error: 'Usage limit exceeded' });
+    }
+  });
+
+  it('calls getAdminEmails to retrieve admin list', async () => {
+    // Arrange
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({ allowed: true });
+
+    // Act
+    await enforceUsageLimit(session);
+
+    // Assert: getAdminEmails was called
+    expect(getAdminEmailsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls getWeeklyCapTokens to retrieve cap value', async () => {
+    // Arrange
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({ allowed: true });
+
+    // Act
+    await enforceUsageLimit(session);
+
+    // Assert: getWeeklyCapTokens was called
+    expect(getWeeklyCapTokensSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls checkWeeklyUsageLimit with correct userId and isAdmin parameters', async () => {
+    // Arrange: non-admin user
+    const session = createMockSession('user@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({ allowed: true });
+
+    // Act
+    await enforceUsageLimit(session);
+
+    // Assert: checkWeeklyUsageLimit was called with correct parameters
+    expect(checkWeeklyUsageLimitSpy).toHaveBeenCalledTimes(1);
+    expect(checkWeeklyUsageLimitSpy).toHaveBeenCalledWith(
+      'user-123', // userId
+      false, // isAdmin (user@example.com is not in admin list)
+      1000, // capTokens
+    );
+  });
+
+  it('calls checkWeeklyUsageLimit with isAdmin: true for admin users', async () => {
+    // Arrange: admin user
+    const session = createMockSession('admin@example.com');
+    getAdminEmailsSpy.mockReturnValue(['admin@example.com']);
+    getWeeklyCapTokensSpy.mockReturnValue(1000);
+    checkWeeklyUsageLimitSpy.mockResolvedValue({ allowed: true });
+
+    // Act
+    await enforceUsageLimit(session);
+
+    // Assert: checkWeeklyUsageLimit was called with isAdmin: true
+    expect(checkWeeklyUsageLimitSpy).toHaveBeenCalledTimes(1);
+    expect(checkWeeklyUsageLimitSpy).toHaveBeenCalledWith(
+      'user-123', // userId
+      true, // isAdmin (admin@example.com is in admin list)
+      1000, // capTokens
+    );
   });
 });

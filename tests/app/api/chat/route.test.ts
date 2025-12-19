@@ -64,11 +64,13 @@ vi.mock('@/lib/ai/openai-response-service', () => ({
 // Mock usage limit functions
 const mockGetWeeklyCapTokens = vi.fn();
 const mockCheckWeeklyUsageLimit = vi.fn();
+const mockEnforceUsageLimit = vi.fn();
 
 vi.mock('@/lib/chat/usage-limit', () => ({
   getWeeklyCapTokens: (...args: unknown[]) => mockGetWeeklyCapTokens(...args),
   checkWeeklyUsageLimit: (...args: unknown[]) =>
     mockCheckWeeklyUsageLimit(...args),
+  enforceUsageLimit: (...args: unknown[]) => mockEnforceUsageLimit(...args),
 }));
 
 // Mock admin emails
@@ -144,6 +146,7 @@ describe('POST /api/chat access control integration', () => {
     // Default: usage cap allows request
     mockGetWeeklyCapTokens.mockReturnValue(1000);
     mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
     // Default: non-admin user
     mockGetAdminEmails.mockReturnValue(['admin@example.com']);
     // Default: handleAccessDenial mimics real behavior using NextResponse
@@ -417,6 +420,7 @@ describe('POST /api/chat AIResponse content extraction', () => {
     // Default: usage cap allows request
     mockGetWeeklyCapTokens.mockReturnValue(1000);
     mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
     // Default: non-admin user
     mockGetAdminEmails.mockReturnValue(['admin@example.com']);
     // Default: handleAccessDenial mimics real behavior using NextResponse
@@ -519,6 +523,7 @@ describe('POST /api/chat token usage persistence', () => {
     // Default: usage cap allows request
     mockGetWeeklyCapTokens.mockReturnValue(1000);
     mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
     // Default: non-admin user
     mockGetAdminEmails.mockReturnValue(['admin@example.com']);
     // Default: handleAccessDenial mimics real behavior using NextResponse
@@ -674,6 +679,7 @@ describe('POST /api/chat usage cap enforcement', () => {
     // Default: usage cap allows request
     mockGetWeeklyCapTokens.mockReturnValue(1000);
     mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
     // Default: non-admin user
     mockGetAdminEmails.mockReturnValue(['admin@example.com']);
     // Default: handleAccessDenial mimics real behavior using NextResponse
@@ -702,11 +708,9 @@ describe('POST /api/chat usage cap enforcement', () => {
     const session = createMockSession('user@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetWeeklyCapTokens.mockReturnValue(1000);
-    mockCheckWeeklyUsageLimit.mockResolvedValue({
-      allowed: false,
-      error: 'Usage limit exceeded',
-    });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
 
     const { POST } = await import('@/app/api/chat/route');
 
@@ -721,8 +725,7 @@ describe('POST /api/chat usage cap enforcement', () => {
     expect(body).toEqual({ error: 'Usage limit exceeded' });
 
     // Assert: usage check was called
-    expect(mockGetWeeklyCapTokens).toHaveBeenCalled();
-    expect(mockCheckWeeklyUsageLimit).toHaveBeenCalled();
+    expect(mockEnforceUsageLimit).toHaveBeenCalled();
 
     // Assert: business logic was NOT invoked
     expect(mockCreateThread).not.toHaveBeenCalled();
@@ -736,11 +739,9 @@ describe('POST /api/chat usage cap enforcement', () => {
     const session = createMockSession('user@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetWeeklyCapTokens.mockReturnValue(1000);
-    mockCheckWeeklyUsageLimit.mockResolvedValue({
-      allowed: false,
-      error: 'Usage limit exceeded',
-    });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
 
     const { POST } = await import('@/app/api/chat/route');
 
@@ -764,9 +765,7 @@ describe('POST /api/chat usage cap enforcement', () => {
     const session = createMockSession('user@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetAdminEmails.mockReturnValue(['admin@example.com']);
-    mockGetWeeklyCapTokens.mockReturnValue(1000);
-    mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
 
     const { POST } = await import('@/app/api/chat/route');
 
@@ -780,11 +779,8 @@ describe('POST /api/chat usage cap enforcement', () => {
     expect(response.status).toBe(200);
     expect(body).toHaveProperty('threadID');
 
-    // Assert: usage check was called with isAdmin: false
-    expect(mockGetWeeklyCapTokens).toHaveBeenCalled();
-    expect(mockCheckWeeklyUsageLimit).toHaveBeenCalled();
-    const checkCall = mockCheckWeeklyUsageLimit.mock.calls[0];
-    expect(checkCall[1]).toBe(false); // isAdmin parameter should be false
+    // Assert: usage check was called
+    expect(mockEnforceUsageLimit).toHaveBeenCalled();
 
     // Assert: business logic proceeded normally
     expect(mockCreateThread).toHaveBeenCalled();
@@ -797,10 +793,7 @@ describe('POST /api/chat usage cap enforcement', () => {
     const session = createMockSession('admin@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetAdminEmails.mockReturnValue(['admin@example.com']);
-    mockGetWeeklyCapTokens.mockReturnValue(1000);
-    // Even if usage check would deny, admin should proceed
-    mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
 
     const { POST } = await import('@/app/api/chat/route');
 
@@ -814,11 +807,8 @@ describe('POST /api/chat usage cap enforcement', () => {
     expect(response.status).toBe(200);
     expect(body).toHaveProperty('threadID');
 
-    // Assert: usage check was called with isAdmin: true
-    expect(mockGetWeeklyCapTokens).toHaveBeenCalled();
-    expect(mockCheckWeeklyUsageLimit).toHaveBeenCalled();
-    const checkCall = mockCheckWeeklyUsageLimit.mock.calls[0];
-    expect(checkCall[1]).toBe(true); // isAdmin parameter should be true
+    // Assert: usage check was called
+    expect(mockEnforceUsageLimit).toHaveBeenCalled();
 
     // Assert: business logic proceeded normally
     expect(mockCreateThread).toHaveBeenCalled();
@@ -831,11 +821,9 @@ describe('POST /api/chat usage cap enforcement', () => {
     const session = createMockSession('user@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetWeeklyCapTokens.mockReturnValue(1000);
-    mockCheckWeeklyUsageLimit.mockResolvedValue({
-      allowed: false,
-      error: 'Usage limit exceeded',
-    });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
 
     const { POST } = await import('@/app/api/chat/route');
 
@@ -853,11 +841,9 @@ describe('POST /api/chat usage cap enforcement', () => {
     const session = createMockSession('user@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetWeeklyCapTokens.mockReturnValue(1000);
-    mockCheckWeeklyUsageLimit.mockResolvedValue({
-      allowed: false,
-      error: 'Usage limit exceeded',
-    });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
 
     const { POST } = await import('@/app/api/chat/route');
 
@@ -871,13 +857,13 @@ describe('POST /api/chat usage cap enforcement', () => {
   });
 
   it('throws error when WEEKLY_CAP_TOKENS is missing or invalid', async () => {
-    // Arrange: getWeeklyCapTokens throws error
+    // Arrange: enforceUsageLimit throws error
     const session = createMockSession('user@example.com');
     mockGetServerSession.mockResolvedValue(session);
     mockEnforceAccess.mockReturnValue({ accessGranted: true });
-    mockGetWeeklyCapTokens.mockImplementation(() => {
-      throw new Error('WEEKLY_CAP_TOKENS is missing or invalid');
-    });
+    mockEnforceUsageLimit.mockRejectedValue(
+      new Error('WEEKLY_CAP_TOKENS is missing or invalid'),
+    );
 
     const { POST } = await import('@/app/api/chat/route');
 

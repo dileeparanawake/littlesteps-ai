@@ -6,16 +6,12 @@ import {
   handleAccessDenial,
 } from '@/lib/access-control/enforce';
 import { assertSessionHasUser } from '@/lib/access-control/assert-session-user';
-import { getAdminEmails } from '@/lib/access-control/admin';
 
 import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import { getThreadMessages, userOwnsThread } from '@/lib/chat/read-thread';
 import { OpenAIResponseService } from '@/lib/ai/openai-response-service';
-import {
-  getWeeklyCapTokens,
-  checkWeeklyUsageLimit,
-} from '@/lib/chat/usage-limit';
+import { enforceUsageLimit } from '@/lib/chat/usage-limit';
 
 export async function POST(req: Request) {
   try {
@@ -34,21 +30,9 @@ export async function POST(req: Request) {
     const userId = session.user.id;
 
     // 3a. Usage limit check: verify user hasn't exceeded weekly token cap
-    const adminEmails = getAdminEmails();
-    const userEmail = session.user.email?.toLowerCase() ?? '';
-    const isAdmin = adminEmails.includes(userEmail);
-    const capTokens = getWeeklyCapTokens();
-    const usageCheckResult = await checkWeeklyUsageLimit(
-      userId,
-      isAdmin,
-      capTokens,
-    );
-
-    if (!usageCheckResult.allowed) {
-      return NextResponse.json(
-        { error: usageCheckResult.error },
-        { status: 429 },
-      );
+    const usageDenialResponse = await enforceUsageLimit(session);
+    if (usageDenialResponse) {
+      return usageDenialResponse;
     }
 
     // 4. Parse and validate input
