@@ -5,6 +5,7 @@ import type { MessageRole } from '@/lib/chat/message-roles';
 import { throwIfMissingFields } from '@/lib/validation';
 import { eq, desc } from 'drizzle-orm';
 import { SYSTEM_MESSAGE } from './system-message';
+import type { AIResponseUsage } from '@/lib/ai/types';
 
 // create a new message in a thread
 export async function createMessage(
@@ -12,13 +13,24 @@ export async function createMessage(
   sequence: number,
   role: MessageRole,
   content: string,
+  usage?: AIResponseUsage,
 ) {
   throwIfMissingFields({ threadId, sequence, role, content });
   await throwIfThreadDoesNotExist(threadId);
 
   const [newMessage] = await db
     .insert(message)
-    .values({ threadId, sequence, role, content })
+    .values({
+      threadId,
+      sequence,
+      role,
+      content,
+      ...(usage && {
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+        totalTokens: usage.totalTokens,
+      }),
+    })
     .returning();
 
   // console.log('newMessage Created', newMessage);
@@ -44,6 +56,7 @@ export async function addMessageToThread(
   threadId: string,
   role: Exclude<MessageRole, 'system'>,
   content: string,
+  usage?: AIResponseUsage,
 ) {
   throwIfMissingFields({ threadId, role, content });
   await throwIfThreadDoesNotExist(threadId);
@@ -57,8 +70,8 @@ export async function addMessageToThread(
   if (nextSequence === 0) {
     const systemRole: MessageRole = 'system';
     await createMessage(threadId, 0, systemRole, SYSTEM_MESSAGE);
-    return await createMessage(threadId, 1, role, content);
+    return await createMessage(threadId, 1, role, content, usage);
   }
 
-  return await createMessage(threadId, nextSequence, role, content);
+  return await createMessage(threadId, nextSequence, role, content, usage);
 }

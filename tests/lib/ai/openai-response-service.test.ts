@@ -65,8 +65,8 @@ describe('OpenAIResponseService', () => {
     // Act
     const result = await OpenAIResponseService.generateResponse(sampleMessages);
 
-    // Assert: returns the content string
-    expect(result).toBe(expectedContent);
+    // Assert: returns AIResponse with content
+    expect(result.content).toBe(expectedContent);
 
     // Assert: OpenAI SDK called with correct base parameters
     expect(mockCreateCompletion).toHaveBeenCalledTimes(1);
@@ -212,5 +212,70 @@ describe('OpenAIResponseService', () => {
     await expect(
       OpenAIResponseService.generateResponse(sampleMessages),
     ).rejects.toThrow('No content received from OpenAI');
+  });
+});
+
+// --------------------------------------------------------------------------
+// OpenAIResponseService usage mapping tests
+// --------------------------------------------------------------------------
+
+describe('OpenAIResponseService.generateResponse usage mapping', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('returns usage with correctly mapped tokens when OpenAI response includes usage', async () => {
+    // Arrange
+    const expectedContent = 'Test response with usage';
+    const openAIUsage = {
+      prompt_tokens: 15,
+      completion_tokens: 25,
+      total_tokens: 40,
+    };
+    mockCreateCompletion.mockResolvedValue({
+      choices: [{ message: { content: expectedContent } }],
+      usage: openAIUsage,
+    });
+
+    // Import fresh to apply mocks
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
+    );
+
+    // Act
+    const result = await OpenAIResponseService.generateResponse(sampleMessages);
+
+    // Assert: returns AIResponse with correctly mapped usage
+    expect(result.content).toBe(expectedContent);
+    expect(result.usage).toEqual({
+      promptTokens: 15,
+      completionTokens: 25,
+      totalTokens: 40,
+    });
+  });
+
+  it('returns undefined usage when OpenAI response has no usage object', async () => {
+    // Arrange
+    const expectedContent = 'Test response without usage';
+    mockCreateCompletion.mockResolvedValue({
+      choices: [{ message: { content: expectedContent } }],
+      // No usage field
+    });
+
+    // Import fresh to apply mocks
+    const { OpenAIResponseService } = await import(
+      '@/lib/ai/openai-response-service'
+    );
+
+    // Act
+    const result = await OpenAIResponseService.generateResponse(sampleMessages);
+
+    // Assert: returns AIResponse with undefined usage
+    expect(result.content).toBe(expectedContent);
+    expect(result.usage).toBeUndefined();
   });
 });

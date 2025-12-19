@@ -11,6 +11,7 @@ import { createThread } from '@/lib/chat/create-thread';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import { getThreadMessages, userOwnsThread } from '@/lib/chat/read-thread';
 import { OpenAIResponseService } from '@/lib/ai/openai-response-service';
+import { enforceUsageLimit } from '@/lib/chat/usage-limit';
 
 export async function POST(req: Request) {
   try {
@@ -27,6 +28,12 @@ export async function POST(req: Request) {
     // 3. Assert session shape: ensure session.user exists
     assertSessionHasUser(session);
     const userId = session.user.id;
+
+    // 3a. Usage limit check: verify user hasn't exceeded weekly token cap
+    const usageDenialResponse = await enforceUsageLimit(session);
+    if (usageDenialResponse) {
+      return usageDenialResponse;
+    }
 
     // 4. Parse and validate input
     const { searchParams } = new URL(req.url);
@@ -66,13 +73,20 @@ export async function POST(req: Request) {
     }));
 
     // 7. External calls: AI adapter
-    const assistantContent = await OpenAIResponseService.generateResponse(
+    const aiResponse = await OpenAIResponseService.generateResponse(
       messagesContent,
-      { threadId: threadID },
+      {
+        threadId: threadID,
+      },
     );
 
     // add assistant message to thread
-    await addMessageToThread(threadID, 'assistant', assistantContent);
+    await addMessageToThread(
+      threadID,
+      'assistant',
+      aiResponse.content,
+      ...(aiResponse.usage ? [aiResponse.usage] : []),
+    );
 
     // 8. Respond
     return NextResponse.json({ threadID }, { status: 200 });

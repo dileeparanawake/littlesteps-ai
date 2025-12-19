@@ -8,6 +8,7 @@ import { wipeDB } from '../helpers/wipe-db';
 import { createTestUser } from '../helpers/create-test-user';
 import { makeTestUser } from '../helpers/test-data';
 import { SYSTEM_MESSAGE } from '@/lib/chat/system-message';
+import type { AIResponseUsage } from '@/lib/ai/types';
 
 const testUser = makeTestUser();
 
@@ -49,6 +50,54 @@ describe.sequential('createMessage', () => {
       role: 'user',
       content: 'Hello, world!',
     });
+  });
+
+  it('persists promptTokens, completionTokens, and totalTokens when usage is provided', async () => {
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+    };
+
+    const newMessage = await createMessage(
+      newThread.id,
+      1,
+      'assistant',
+      'AI response',
+      usage,
+    );
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.id, newMessage.id));
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].promptTokens).toBe(10);
+    expect(rows[0].completionTokens).toBe(20);
+    expect(rows[0].totalTokens).toBe(30);
+  });
+
+  it('leaves token columns as null when usage is not provided', async () => {
+    const newThread = await createThread(testUser.id);
+
+    const newMessage = await createMessage(
+      newThread.id,
+      1,
+      'user',
+      'Hello, world!',
+    );
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.id, newMessage.id));
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].promptTokens).toBeNull();
+    expect(rows[0].completionTokens).toBeNull();
+    expect(rows[0].totalTokens).toBeNull();
   });
 });
 
@@ -153,5 +202,104 @@ describe.sequential('addMessageToThread', () => {
     await expect(
       addMessageToThread(newThread.id, 'user', ''),
     ).rejects.toThrow();
+  });
+
+  it('persists token usage for assistant messages when usage is provided', async () => {
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 15,
+      completionTokens: 25,
+      totalTokens: 40,
+    };
+
+    const newMessage = await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'AI response',
+      usage,
+    );
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.id, newMessage.id));
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].promptTokens).toBe(15);
+    expect(rows[0].completionTokens).toBe(25);
+    expect(rows[0].totalTokens).toBe(40);
+  });
+
+  it('does not persist token usage for user messages', async () => {
+    const newThread = await createThread(testUser.id);
+
+    const newMessage = await addMessageToThread(
+      newThread.id,
+      'user',
+      'User message',
+    );
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.id, newMessage.id));
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].promptTokens).toBeNull();
+    expect(rows[0].completionTokens).toBeNull();
+    expect(rows[0].totalTokens).toBeNull();
+  });
+
+  it('persists token usage correctly when system message is auto-created', async () => {
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 20,
+      completionTokens: 30,
+      totalTokens: 50,
+    };
+
+    const newMessage = await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'First AI response',
+      usage,
+    );
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.threadId, newThread.id))
+      .orderBy(message.sequence);
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0].role).toBe('system');
+    expect(rows[0].promptTokens).toBeNull();
+    expect(rows[0].completionTokens).toBeNull();
+    expect(rows[0].totalTokens).toBeNull();
+    expect(rows[1].id).toBe(newMessage.id);
+    expect(rows[1].role).toBe('assistant');
+    expect(rows[1].promptTokens).toBe(20);
+    expect(rows[1].completionTokens).toBe(30);
+    expect(rows[1].totalTokens).toBe(50);
+  });
+
+  it('leaves token columns as null when usage is not provided', async () => {
+    const newThread = await createThread(testUser.id);
+
+    const newMessage = await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'AI response without usage',
+    );
+
+    const rows = await db
+      .select()
+      .from(message)
+      .where(eq(message.id, newMessage.id));
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].promptTokens).toBeNull();
+    expect(rows[0].completionTokens).toBeNull();
+    expect(rows[0].totalTokens).toBeNull();
   });
 });

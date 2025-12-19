@@ -50,12 +50,33 @@ vi.mock('@/lib/chat/read-thread', () => ({
 }));
 
 // Mock AI adapter service
-const mockGenerateResponse = vi.fn().mockResolvedValue('AI response');
+const mockGenerateResponse = vi.fn().mockResolvedValue({
+  content: 'AI response',
+  usage: undefined,
+});
 
 vi.mock('@/lib/ai/openai-response-service', () => ({
   OpenAIResponseService: {
     generateResponse: mockGenerateResponse,
   },
+}));
+
+// Mock usage limit functions
+const mockGetWeeklyCapTokens = vi.fn();
+const mockCheckWeeklyUsageLimit = vi.fn();
+const mockEnforceUsageLimit = vi.fn();
+
+vi.mock('@/lib/chat/usage-limit', () => ({
+  getWeeklyCapTokens: (...args: unknown[]) => mockGetWeeklyCapTokens(...args),
+  checkWeeklyUsageLimit: (...args: unknown[]) =>
+    mockCheckWeeklyUsageLimit(...args),
+  enforceUsageLimit: (...args: unknown[]) => mockEnforceUsageLimit(...args),
+}));
+
+// Mock admin emails
+const mockGetAdminEmails = vi.fn();
+vi.mock('@/lib/access-control/admin', () => ({
+  getAdminEmails: (...args: unknown[]) => mockGetAdminEmails(...args),
 }));
 
 // --------------------------------------------------------------------------
@@ -112,13 +133,22 @@ describe('POST /api/chat access control integration', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Re-establish adapter mock after reset
-    mockGenerateResponse.mockResolvedValue('AI response');
+    mockGenerateResponse.mockResolvedValue({
+      content: 'AI response',
+      usage: undefined,
+    });
     // Default: business logic succeeds
     mockCreateThread.mockResolvedValue({ id: 'thread-123' });
     mockAddMessageToThread.mockResolvedValue(undefined);
     mockGetThreadMessages.mockResolvedValue([
       { role: 'user', content: 'Hello' },
     ]);
+    // Default: usage cap allows request
+    mockGetWeeklyCapTokens.mockReturnValue(1000);
+    mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
+    // Default: non-admin user
+    mockGetAdminEmails.mockReturnValue(['admin@example.com']);
     // Default: handleAccessDenial mimics real behavior using NextResponse
     mockHandleAccessDenial.mockImplementation((accessResult) => {
       if (accessResult.accessGranted === false) {
@@ -367,6 +397,491 @@ describe('POST /api/chat access control integration', () => {
       [{ role: 'user', content: 'Hello' }],
       { threadId: 'thread-123' },
     );
+  });
+});
+
+// --------------------------------------------------------------------------
+// POST /api/chat AIResponse content extraction tests
+// --------------------------------------------------------------------------
+
+describe('POST /api/chat AIResponse content extraction', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    // Default: valid session and access granted
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    // Default: business logic succeeds
+    mockCreateThread.mockResolvedValue({ id: 'thread-123' });
+    mockAddMessageToThread.mockResolvedValue(undefined);
+    mockGetThreadMessages.mockResolvedValue([
+      { role: 'user', content: 'Hello' },
+    ]);
+    // Default: usage cap allows request
+    mockGetWeeklyCapTokens.mockReturnValue(1000);
+    mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
+    // Default: non-admin user
+    mockGetAdminEmails.mockReturnValue(['admin@example.com']);
+    // Default: handleAccessDenial mimics real behavior using NextResponse
+    mockHandleAccessDenial.mockImplementation((accessResult) => {
+      if (accessResult.accessGranted === false) {
+        return NextResponse.json(
+          { error: accessResult.error },
+          { status: accessResult.status },
+        );
+      }
+      return null;
+    });
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('extracts content from AIResponse when writing assistant message', async () => {
+    // Arrange: valid session, access granted, mock generateResponse with usage
+    const expectedContent = 'expected content';
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+      },
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: addMessageToThread was called with content extracted from AIResponse
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    // Find the call for assistant message (second argument is 'assistant')
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[2]).toBe(expectedContent);
+  });
+
+  it('extracts content correctly when usage is undefined', async () => {
+    // Arrange: mock generateResponse with undefined usage
+    const expectedContent = 'response without usage';
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: undefined,
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: addMessageToThread called with correct content (usage being undefined doesn't affect content extraction)
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[2]).toBe(expectedContent);
+  });
+});
+
+// --------------------------------------------------------------------------
+// POST /api/chat token usage persistence tests
+// --------------------------------------------------------------------------
+
+describe('POST /api/chat token usage persistence', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    // Default: valid session and access granted
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    // Default: business logic succeeds
+    mockCreateThread.mockResolvedValue({ id: 'thread-123' });
+    mockAddMessageToThread.mockResolvedValue(undefined);
+    mockGetThreadMessages.mockResolvedValue([
+      { role: 'user', content: 'Hello' },
+    ]);
+    // Default: usage cap allows request
+    mockGetWeeklyCapTokens.mockReturnValue(1000);
+    mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
+    // Default: non-admin user
+    mockGetAdminEmails.mockReturnValue(['admin@example.com']);
+    // Default: handleAccessDenial mimics real behavior using NextResponse
+    mockHandleAccessDenial.mockImplementation((accessResult) => {
+      if (accessResult.accessGranted === false) {
+        return NextResponse.json(
+          { error: accessResult.error },
+          { status: accessResult.status },
+        );
+      }
+      return null;
+    });
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('passes usage from AIResponse to addMessageToThread for assistant message', async () => {
+    // Arrange: mock generateResponse with usage
+    const expectedContent = 'AI response';
+    const expectedUsage = {
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+    };
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: expectedUsage,
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: addMessageToThread was called twice (user message + assistant message)
+    expect(mockAddMessageToThread).toHaveBeenCalledTimes(2);
+
+    // Assert: user message was called without usage (3 arguments)
+    const userCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'user',
+    );
+    expect(userCall).toBeDefined();
+    expect(userCall?.[0]).toBe('thread-123');
+    expect(userCall?.[1]).toBe('user');
+    expect(userCall?.[2]).toBe('Hello');
+    expect(userCall?.length).toBe(3); // No usage parameter
+
+    // Assert: assistant message was called with usage (4 arguments)
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[0]).toBe('thread-123');
+    expect(assistantCall?.[1]).toBe('assistant');
+    expect(assistantCall?.[2]).toBe(expectedContent);
+    expect(assistantCall?.[3]).toEqual(expectedUsage);
+    expect(assistantCall?.length).toBe(4); // Includes usage parameter
+  });
+
+  it('does not pass usage when AIResponse has undefined usage', async () => {
+    // Arrange: mock generateResponse with undefined usage
+    const expectedContent = 'AI response without usage';
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: undefined,
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: assistant message was called without usage (3 arguments)
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[0]).toBe('thread-123');
+    expect(assistantCall?.[1]).toBe('assistant');
+    expect(assistantCall?.[2]).toBe(expectedContent);
+    expect(assistantCall?.length).toBe(3); // No usage parameter
+  });
+
+  it('does not pass usage for user messages', async () => {
+    // Arrange: mock generateResponse with usage
+    mockGenerateResponse.mockResolvedValue({
+      content: 'AI response',
+      usage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+      },
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('User prompt');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: user message was called without usage (3 arguments only)
+    const userCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'user',
+    );
+    expect(userCall).toBeDefined();
+    expect(userCall?.[0]).toBe('thread-123');
+    expect(userCall?.[1]).toBe('user');
+    expect(userCall?.[2]).toBe('User prompt');
+    expect(userCall?.length).toBe(3); // No usage parameter for user messages
+  });
+});
+
+// --------------------------------------------------------------------------
+// POST /api/chat usage cap enforcement tests
+// --------------------------------------------------------------------------
+
+describe('POST /api/chat usage cap enforcement', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    // Default: valid session and access granted
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    // Default: business logic succeeds
+    mockCreateThread.mockResolvedValue({ id: 'thread-123' });
+    mockAddMessageToThread.mockResolvedValue(undefined);
+    mockGetThreadMessages.mockResolvedValue([
+      { role: 'user', content: 'Hello' },
+    ]);
+    mockUserOwnsThread.mockResolvedValue(true);
+    // Default: usage cap allows request
+    mockGetWeeklyCapTokens.mockReturnValue(1000);
+    mockCheckWeeklyUsageLimit.mockResolvedValue({ allowed: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
+    // Default: non-admin user
+    mockGetAdminEmails.mockReturnValue(['admin@example.com']);
+    // Default: handleAccessDenial mimics real behavior using NextResponse
+    mockHandleAccessDenial.mockImplementation((accessResult) => {
+      if (accessResult.accessGranted === false) {
+        return NextResponse.json(
+          { error: accessResult.error },
+          { status: accessResult.status },
+        );
+      }
+      return null;
+    });
+    // Re-establish adapter mock after reset
+    mockGenerateResponse.mockResolvedValue({
+      content: 'AI response',
+      usage: undefined,
+    });
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('returns 429 with error when usage check denies for non-admin user at cap', async () => {
+    // Arrange: non-admin user at usage cap
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: 429 response with error
+    expect(response.status).toBe(429);
+    expect(body).toEqual({ error: 'Usage limit exceeded' });
+
+    // Assert: usage check was called
+    expect(mockEnforceUsageLimit).toHaveBeenCalled();
+
+    // Assert: business logic was NOT invoked
+    expect(mockCreateThread).not.toHaveBeenCalled();
+    expect(mockAddMessageToThread).not.toHaveBeenCalled();
+    expect(mockGetThreadMessages).not.toHaveBeenCalled();
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
+  });
+
+  it('returns 429 with error when usage check denies for non-admin user above cap', async () => {
+    // Arrange: non-admin user above usage cap
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: 429 response with error
+    expect(response.status).toBe(429);
+    expect(body).toEqual({ error: 'Usage limit exceeded' });
+
+    // Assert: business logic was NOT invoked
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
+    expect(mockAddMessageToThread).not.toHaveBeenCalled();
+  });
+
+  it('proceeds normally when usage check allows for non-admin user below cap', async () => {
+    // Arrange: non-admin user below usage cap
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: usage check was called
+    expect(mockEnforceUsageLimit).toHaveBeenCalled();
+
+    // Assert: business logic proceeded normally
+    expect(mockCreateThread).toHaveBeenCalled();
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    expect(mockGenerateResponse).toHaveBeenCalled();
+  });
+
+  it('proceeds normally for admin users regardless of usage', async () => {
+    // Arrange: admin user with usage above cap
+    const session = createMockSession('admin@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockResolvedValue(null);
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: usage check was called
+    expect(mockEnforceUsageLimit).toHaveBeenCalled();
+
+    // Assert: business logic proceeded normally
+    expect(mockCreateThread).toHaveBeenCalled();
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    expect(mockGenerateResponse).toHaveBeenCalled();
+  });
+
+  it('does not call OpenAIResponseService.generateResponse when usage check denies', async () => {
+    // Arrange: usage check denies
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    await POST(req);
+
+    // Assert: adapter was NOT called
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
+  });
+
+  it('does not write assistant message to database when usage check denies', async () => {
+    // Arrange: usage check denies
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockResolvedValue(
+      NextResponse.json({ error: 'Usage limit exceeded' }, { status: 429 }),
+    );
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    await POST(req);
+
+    // Assert: addMessageToThread was NOT called
+    expect(mockAddMessageToThread).not.toHaveBeenCalled();
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS is missing or invalid', async () => {
+    // Arrange: enforceUsageLimit throws error
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    mockEnforceUsageLimit.mockRejectedValue(
+      new Error('WEEKLY_CAP_TOKENS is missing or invalid'),
+    );
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: 500 error response
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      error: 'WEEKLY_CAP_TOKENS is missing or invalid',
+    });
+
+    // Assert: business logic was NOT invoked
+    expect(mockCreateThread).not.toHaveBeenCalled();
+    expect(mockGenerateResponse).not.toHaveBeenCalled();
   });
 });
 
