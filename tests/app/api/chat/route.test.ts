@@ -474,6 +474,155 @@ describe('POST /api/chat AIResponse content extraction', () => {
 });
 
 // --------------------------------------------------------------------------
+// POST /api/chat token usage persistence tests
+// --------------------------------------------------------------------------
+
+describe('POST /api/chat token usage persistence', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    // Default: valid session and access granted
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    // Default: business logic succeeds
+    mockCreateThread.mockResolvedValue({ id: 'thread-123' });
+    mockAddMessageToThread.mockResolvedValue(undefined);
+    mockGetThreadMessages.mockResolvedValue([
+      { role: 'user', content: 'Hello' },
+    ]);
+    // Default: handleAccessDenial mimics real behavior using NextResponse
+    mockHandleAccessDenial.mockImplementation((accessResult) => {
+      if (accessResult.accessGranted === false) {
+        return NextResponse.json(
+          { error: accessResult.error },
+          { status: accessResult.status },
+        );
+      }
+      return null;
+    });
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('passes usage from AIResponse to addMessageToThread for assistant message', async () => {
+    // Arrange: mock generateResponse with usage
+    const expectedContent = 'AI response';
+    const expectedUsage = {
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+    };
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: expectedUsage,
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: addMessageToThread was called twice (user message + assistant message)
+    expect(mockAddMessageToThread).toHaveBeenCalledTimes(2);
+
+    // Assert: user message was called without usage (3 arguments)
+    const userCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'user',
+    );
+    expect(userCall).toBeDefined();
+    expect(userCall?.[0]).toBe('thread-123');
+    expect(userCall?.[1]).toBe('user');
+    expect(userCall?.[2]).toBe('Hello');
+    expect(userCall?.length).toBe(3); // No usage parameter
+
+    // Assert: assistant message was called with usage (4 arguments)
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[0]).toBe('thread-123');
+    expect(assistantCall?.[1]).toBe('assistant');
+    expect(assistantCall?.[2]).toBe(expectedContent);
+    expect(assistantCall?.[3]).toEqual(expectedUsage);
+    expect(assistantCall?.length).toBe(4); // Includes usage parameter
+  });
+
+  it('does not pass usage when AIResponse has undefined usage', async () => {
+    // Arrange: mock generateResponse with undefined usage
+    const expectedContent = 'AI response without usage';
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: undefined,
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: assistant message was called without usage (3 arguments)
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[0]).toBe('thread-123');
+    expect(assistantCall?.[1]).toBe('assistant');
+    expect(assistantCall?.[2]).toBe(expectedContent);
+    expect(assistantCall?.length).toBe(3); // No usage parameter
+  });
+
+  it('does not pass usage for user messages', async () => {
+    // Arrange: mock generateResponse with usage
+    mockGenerateResponse.mockResolvedValue({
+      content: 'AI response',
+      usage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+      },
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('User prompt');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: user message was called without usage (3 arguments only)
+    const userCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'user',
+    );
+    expect(userCall).toBeDefined();
+    expect(userCall?.[0]).toBe('thread-123');
+    expect(userCall?.[1]).toBe('user');
+    expect(userCall?.[2]).toBe('User prompt');
+    expect(userCall?.length).toBe(3); // No usage parameter for user messages
+  });
+});
+
+// --------------------------------------------------------------------------
 // GET /api/chat access control integration tests
 // --------------------------------------------------------------------------
 
