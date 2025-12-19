@@ -4,6 +4,8 @@ import type {
   Message,
   ResponseOptions,
   AIResponseService,
+  AIResponse,
+  AIResponseUsage,
 } from '@/lib/ai/types';
 
 class OpenAIResponseServiceImpl implements AIResponseService {
@@ -16,7 +18,7 @@ class OpenAIResponseServiceImpl implements AIResponseService {
   async generateResponse(
     messages: Message[],
     options?: ResponseOptions,
-  ): Promise<string> {
+  ): Promise<AIResponse> {
     // Build request parameters
     const requestParams: ChatCompletionCreateParamsNonStreaming = {
       model: 'gpt-5-nano',
@@ -48,7 +50,17 @@ class OpenAIResponseServiceImpl implements AIResponseService {
       throw new Error('No content received from OpenAI');
     }
 
-    return content;
+    // Map usage if present
+    let usage: AIResponseUsage | undefined;
+    if (response.usage) {
+      usage = {
+        promptTokens: response.usage.prompt_tokens,
+        completionTokens: response.usage.completion_tokens,
+        totalTokens: response.usage.total_tokens,
+      };
+    }
+
+    return { content, usage };
   }
 }
 

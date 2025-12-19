@@ -50,7 +50,10 @@ vi.mock('@/lib/chat/read-thread', () => ({
 }));
 
 // Mock AI adapter service
-const mockGenerateResponse = vi.fn().mockResolvedValue('AI response');
+const mockGenerateResponse = vi.fn().mockResolvedValue({
+  content: 'AI response',
+  usage: undefined,
+});
 
 vi.mock('@/lib/ai/openai-response-service', () => ({
   OpenAIResponseService: {
@@ -112,7 +115,10 @@ describe('POST /api/chat access control integration', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Re-establish adapter mock after reset
-    mockGenerateResponse.mockResolvedValue('AI response');
+    mockGenerateResponse.mockResolvedValue({
+      content: 'AI response',
+      usage: undefined,
+    });
     // Default: business logic succeeds
     mockCreateThread.mockResolvedValue({ id: 'thread-123' });
     mockAddMessageToThread.mockResolvedValue(undefined);
@@ -367,6 +373,103 @@ describe('POST /api/chat access control integration', () => {
       [{ role: 'user', content: 'Hello' }],
       { threadId: 'thread-123' },
     );
+  });
+});
+
+// --------------------------------------------------------------------------
+// POST /api/chat AIResponse content extraction tests
+// --------------------------------------------------------------------------
+
+describe('POST /api/chat AIResponse content extraction', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    // Default: valid session and access granted
+    const session = createMockSession('user@example.com');
+    mockGetServerSession.mockResolvedValue(session);
+    mockEnforceAccess.mockReturnValue({ accessGranted: true });
+    // Default: business logic succeeds
+    mockCreateThread.mockResolvedValue({ id: 'thread-123' });
+    mockAddMessageToThread.mockResolvedValue(undefined);
+    mockGetThreadMessages.mockResolvedValue([
+      { role: 'user', content: 'Hello' },
+    ]);
+    // Default: handleAccessDenial mimics real behavior using NextResponse
+    mockHandleAccessDenial.mockImplementation((accessResult) => {
+      if (accessResult.accessGranted === false) {
+        return NextResponse.json(
+          { error: accessResult.error },
+          { status: accessResult.status },
+        );
+      }
+      return null;
+    });
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('extracts content from AIResponse when writing assistant message', async () => {
+    // Arrange: valid session, access granted, mock generateResponse with usage
+    const expectedContent = 'expected content';
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+      },
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: addMessageToThread was called with content extracted from AIResponse
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    // Find the call for assistant message (second argument is 'assistant')
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[2]).toBe(expectedContent);
+  });
+
+  it('extracts content correctly when usage is undefined', async () => {
+    // Arrange: mock generateResponse with undefined usage
+    const expectedContent = 'response without usage';
+    mockGenerateResponse.mockResolvedValue({
+      content: expectedContent,
+      usage: undefined,
+    });
+
+    const { POST } = await import('@/app/api/chat/route');
+
+    const req = createPostRequest('Hello');
+
+    // Act
+    const response = await POST(req);
+    const body = await response.json();
+
+    // Assert: success response
+    expect(response.status).toBe(200);
+    expect(body).toHaveProperty('threadID');
+
+    // Assert: addMessageToThread called with correct content (usage being undefined doesn't affect content extraction)
+    expect(mockAddMessageToThread).toHaveBeenCalled();
+    const assistantCall = mockAddMessageToThread.mock.calls.find(
+      (call) => call[1] === 'assistant',
+    );
+    expect(assistantCall).toBeDefined();
+    expect(assistantCall?.[2]).toBe(expectedContent);
   });
 });
 

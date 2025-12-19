@@ -9,9 +9,20 @@ export interface ResponseOptions {
   threadId?: string;
 }
 
+export interface AIResponseUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export interface AIResponse {
+  content: string;
+  usage?: AIResponseUsage;
+}
+
 export interface AIResponseService {
   generateResponse(
     messages: Message[],
     options?: ResponseOptions,
-  ): Promise<string>;
+  ): Promise<AIResponse>;
 }

@@ -66,13 +66,13 @@ export async function POST(req: Request) {
     }));
 
     // 7. External calls: AI adapter
-    const assistantContent = await OpenAIResponseService.generateResponse(
-      messagesContent,
-      { threadId: threadID },
-    );
+    const { content: responseContent } =
+      await OpenAIResponseService.generateResponse(messagesContent, {
+        threadId: threadID,
+      });
 
     // add assistant message to thread
-    await addMessageToThread(threadID, 'assistant', assistantContent);
+    await addMessageToThread(threadID, 'assistant', responseContent);
 
     // 8. Respond
     return NextResponse.json({ threadID }, { status: 200 });
