@@ -1,4 +1,13 @@
-import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
+import {
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { db } from '@/db';
 import { message } from '@/db/schema';
 import { createThread } from '@/lib/chat/create-thread';
@@ -9,6 +18,8 @@ import { makeTestUser } from '../../helpers/test-data';
 import {
   getCurrentWeekRangeUtc,
   getWeeklyTokenUsageForUser,
+  getWeeklyCapTokens,
+  checkWeeklyUsageLimit,
 } from '@/lib/chat/usage-limit';
 import type { AIResponseUsage } from '@/lib/ai/types';
 
@@ -293,5 +304,185 @@ describe.sequential('getWeeklyTokenUsageForUser', () => {
 
     // Should return 0 for non-existent user (no messages to count)
     expect(usage).toBe(0);
+  });
+});
+
+describe('getWeeklyCapTokens', () => {
+  const originalEnv = process.env.WEEKLY_CAP_TOKENS;
+
+  afterEach(() => {
+    // Restore original environment variable
+    if (originalEnv !== undefined) {
+      process.env.WEEKLY_CAP_TOKENS = originalEnv;
+    } else {
+      delete process.env.WEEKLY_CAP_TOKENS;
+    }
+  });
+
+  it('returns parsed number when WEEKLY_CAP_TOKENS is set to valid positive integer', () => {
+    process.env.WEEKLY_CAP_TOKENS = '1000';
+
+    const cap = getWeeklyCapTokens();
+
+    expect(cap).toBe(1000);
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS is missing', () => {
+    delete process.env.WEEKLY_CAP_TOKENS;
+
+    expect(() => getWeeklyCapTokens()).toThrow();
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS is "0"', () => {
+    process.env.WEEKLY_CAP_TOKENS = '0';
+
+    expect(() => getWeeklyCapTokens()).toThrow();
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS is empty string', () => {
+    process.env.WEEKLY_CAP_TOKENS = '';
+
+    expect(() => getWeeklyCapTokens()).toThrow();
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS is "null"', () => {
+    process.env.WEEKLY_CAP_TOKENS = 'null';
+
+    expect(() => getWeeklyCapTokens()).toThrow();
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS cannot be parsed as number', () => {
+    process.env.WEEKLY_CAP_TOKENS = 'not-a-number';
+
+    expect(() => getWeeklyCapTokens()).toThrow();
+  });
+
+  it('throws error when WEEKLY_CAP_TOKENS is negative number', () => {
+    process.env.WEEKLY_CAP_TOKENS = '-100';
+
+    expect(() => getWeeklyCapTokens()).toThrow();
+  });
+});
+
+describe.sequential('checkWeeklyUsageLimit', () => {
+  const testUser = makeTestUser();
+
+  beforeAll(async () => {
+    await wipeDB();
+  });
+
+  beforeEach(async () => {
+    await wipeDB();
+    await createTestUser(testUser);
+  });
+
+  afterAll(async () => {
+    await wipeDB();
+  });
+
+  it('returns { allowed: true } for admin users regardless of usage', async () => {
+    // Arrange: admin user with usage above cap
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 1000,
+      completionTokens: 4000,
+      totalTokens: 5000,
+    };
+    await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'AI response with high usage',
+      usage,
+    );
+
+    const isAdmin = true;
+    const capTokens = 1000;
+
+    // Act
+    const result = await checkWeeklyUsageLimit(testUser.id, isAdmin, capTokens);
+
+    // Assert: admin users are always allowed even with usage above cap
+    expect(result).toEqual({ allowed: true });
+  });
+
+  it('returns { allowed: true } for non-admin users below the cap', async () => {
+    // Arrange: non-admin user with usage below cap
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 100,
+      completionTokens: 400,
+      totalTokens: 500,
+    };
+    await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'AI response with low usage',
+      usage,
+    );
+
+    const isAdmin = false;
+    const capTokens = 1000;
+
+    // Act
+    const result = await checkWeeklyUsageLimit(testUser.id, isAdmin, capTokens);
+
+    // Assert: user is allowed because usage (500) is below cap (1000)
+    expect(result).toEqual({ allowed: true });
+  });
+
+  it('returns { allowed: false, error: "..." } for non-admin users at the cap', async () => {
+    // Arrange: non-admin user with usage exactly at cap
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 250,
+      completionTokens: 750,
+      totalTokens: 1000,
+    };
+    await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'AI response at cap',
+      usage,
+    );
+
+    const isAdmin = false;
+    const capTokens = 1000;
+
+    // Act
+    const result = await checkWeeklyUsageLimit(testUser.id, isAdmin, capTokens);
+
+    // Assert: user is denied because usage (1000) is at cap (1000)
+    expect(result.allowed).toBe(false);
+    expect(result.error).toBeDefined();
+    expect(typeof result.error).toBe('string');
+    expect(result.error).toBe('Usage limit exceeded');
+  });
+
+  it('returns { allowed: false, error: "..." } for non-admin users above the cap', async () => {
+    // Arrange: non-admin user with usage above cap
+    const newThread = await createThread(testUser.id);
+    const usage: AIResponseUsage = {
+      promptTokens: 500,
+      completionTokens: 1000,
+      totalTokens: 1500,
+    };
+    await addMessageToThread(
+      newThread.id,
+      'assistant',
+      'AI response above cap',
+      usage,
+    );
+
+    const isAdmin = false;
+    const capTokens = 1000;
+
+    // Act
+    const result = await checkWeeklyUsageLimit(testUser.id, isAdmin, capTokens);
+
+    // Assert: user is denied because usage (1500) is above cap (1000)
+    expect(result.allowed).toBe(false);
+    expect(result.error).toBeDefined();
+    expect(typeof result.error).toBe('string');
+    expect(result.error).toBe('Usage limit exceeded');
   });
 });
