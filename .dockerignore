@@ -13,34 +13,73 @@ dist
 .env.*.local
 .env.test
 
-# OS + editor-specific junk
-.DS_Store
-*.log
-*.log.*
-
-# testing
+# Testing artifacts
 coverage/
 test-results/
+tests/**/*.log
+vitest.config.ts
 
 # Git
 .git
 .gitignore
 
-# Volta / tooling caches (optional)
-.pnpm-store
-.vscode
-
-# Typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Misc
-/project_admin/
-*.swp        
-*.tmp       
-*.bak       
+# OS and editor files
+.DS_Store
+*.log
+*.log.*
+.vscode/
+.cursor/
+*.swp
+*.tmp
+*.bak
 
-# SQLite database
+# Volta / tooling caches
+.pnpm-store
+.pnpm-store/*
+
+# Documentation (not needed in production)
+/docs/
+/README.md
+/LICENSE
+/known-issues.md
+/setup_notes.md
+**/AGENTS.md
+
+# Development scripts and tools
+/scripts/
+/tests/
+
+# Docker and deployment files
+/Dockerfile.dev
+/.dockerignore
+/docker-compose.yml
+/fly.toml
+.vercel
+.github/
+
+# Old/unused directories
+/drizzle/
+# /better-auth_migrations/
+
+# Project admin (internal docs)
+/project_admin/
+
+# Database files
 *.db
 *.db-journal
-# /better-auth_migrations
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build caches and linting config
+.eslintcache
+.stylelintcache
+.cache
+eslint.config.mjs
