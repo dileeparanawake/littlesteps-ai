@@ -27,7 +27,7 @@ export function ChatInput({
     <form onSubmit={handleFormSubmit}>
       {/* error alert */}
       {error && <ErrorAlert error={error} />}
-      <div className="flex items-center bg-muted rounded-lg px-2 py-1 shadow-sm">
+      <div className="flex items-center bg-muted/30 border border-input rounded-lg px-3 py-2 shadow-sm hover:bg-muted/20 transition-colors">
         <Input
           type="text"
           placeholder="Ask anything"
@@ -35,7 +35,12 @@ export function ChatInput({
           onChange={(e) => onPromptChange(e.target.value)}
           className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-3"
         />
-        <Button size="sm" className="ml-2" type="submit" disabled={isLoading}>
+        <Button
+          size="sm"
+          className="ml-2 font-medium"
+          type="submit"
+          disabled={isLoading}
+        >
           Ask
         </Button>
       </div>

@@ -7,9 +7,9 @@ export default function ChatSidebar() {
   return (
     <div className="h-full flex flex-col bg-sidebar">
       {/* Header section - fixed */}
-      <div className="p-4 ">
+      <div className="p-4 pb-0">
         <div className="flex justify-between items-baseline">
-          <p className="text-sm font-bold leading-none tracking-tight">
+          <p className="text-sm font-semibold text-foreground leading-none tracking-tight">
             Chat History
           </p>
           <Link

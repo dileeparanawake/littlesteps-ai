@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { authClient } from '@/lib/auth-client';
 import { useModal } from '../providers/ModalProvider';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import HeaderTitle from '@/components/layout/HeaderTitle';
 
 export default function Header() {
   // hooks
@@ -46,15 +46,8 @@ export default function Header() {
   const disabled = isPending || isSigningOut;
 
   return (
-    <header className="sticky top-0 z-50 flex justify-between items-center px-6 py-4 bg-gray-100/80 backdrop-blur-md supports-[backdrop-filter]:bg-gray-100/80 border-b border-border/50">
-      <h1 className="text-xl font-bold leading-none tracking-tight">
-        <Link
-          href="/"
-          className="no-underline text-foreground hover:text-primary transition-colors duration-200"
-        >
-          LittleSteps AI
-        </Link>
-      </h1>
+    <header className="sticky top-0 z-50 flex justify-between items-center px-6 py-4 bg-muted backdrop-blur-md supports-[backdrop-filter]:bg-muted border-b border-border/50">
+      <HeaderTitle />
       <Button
         aria-label={session?.user ? 'Log out' : 'Log in'}
         variant="ghost"

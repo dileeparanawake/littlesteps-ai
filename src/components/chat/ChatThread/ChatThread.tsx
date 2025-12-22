@@ -109,10 +109,10 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     <section
       id="chat-thread"
       aria-labelledby="thread-title"
-      className="h-full flex flex-col overflow-hidden"
+      className="h-full flex flex-col overflow-hidden bg-muted/40"
     >
       {/* Header (fixed at top) */}
-      <header className="flex-shrink-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="flex-shrink-0 bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-muted/40">
         <ThreadTitle threadId={threadId} />
       </header>
 
@@ -130,15 +130,15 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
             <MessageList threadId={threadId} />
           ) : (
             // Empty state: centered between header and footer
-            <p className="text-base text-center text-muted-foreground">
-              Ask a question to get advice
+            <p className="text-sm text-center text-muted-foreground/70">
+              Get guidance on your child&apos;s development and milestones
             </p>
           )}
         </div>
       </div>
 
       {/* Input dock (fixed at bottom) */}
-      <footer className="flex-shrink-0 bg-background">
+      <footer className="flex-shrink-0">
         <div className="mx-auto w-full max-w-3xl px-4 py-3">
           <ChatInput
             onPromptChange={handleInputChange}
