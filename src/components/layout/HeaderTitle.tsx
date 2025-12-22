@@ -12,7 +12,7 @@ export default function HeaderTitle() {
         </Link>
       </h1>
       <p
-        className="text-muted-foreground/70 leading-none tracking-tight m-0"
+        className="leading-none tracking-tight m-0 bg-gradient-to-r from-primary/90 to-primary/70 bg-clip-text text-transparent font-normal"
         style={{ fontSize: '0.7em' }}
       >
         Guidance for new parents

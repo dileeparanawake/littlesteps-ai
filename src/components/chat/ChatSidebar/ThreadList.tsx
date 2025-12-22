@@ -29,10 +29,10 @@ function ThreadItem({
 }) {
   return (
     <div
-      className={`p-2 rounded cursor-pointer ${
+      className={`p-2 rounded cursor-pointer transition-colors duration-150 ${
         active
           ? 'bg-muted font-medium border-l-2 border-primary'
-          : 'hover:bg-accent'
+          : 'hover:bg-accent hover:shadow-sm hover:border hover:border-border hover:text-primary'
       }`}
     >
       <Link
