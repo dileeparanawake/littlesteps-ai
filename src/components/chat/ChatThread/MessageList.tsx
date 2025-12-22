@@ -87,12 +87,12 @@ export function MessageList({ threadId }: MessageListProps) {
                   : 'items-start text-left'
               } flex flex-col max-w-full w-fit`}
             >
-              <span className="text-xs text-muted-foreground mb-1 capitalize">
+              <span className="text-xs text-muted-foreground/70 mb-1 capitalize">
                 {m.role}
               </span>
 
-              <div className="rounded-lg px-4 py-2 max-w-full w-fit text-xs bg-primary text-primary-foreground">
-                <div className="[&_*]:text-primary-foreground [&_a]:underline [&_strong]:text-primary-foreground [&_ul]:list-disc [&_ul]:pl-5 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h4]:text-sm [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-medium [&_h4]:font-medium [&_h1]:mb-2 [&_h2]:mb-2 [&_h3]:mb-1 [&_h4]:mb-1">
+              <div className="rounded-lg px-4 py-2 max-w-full w-fit text-[0.8rem] bg-primary/97 text-primary-foreground">
+                <div className="text-[0.8rem] [&_*]:text-primary-foreground [&_p]:text-[0.8rem] [&_li]:text-[0.8rem] [&_a]:underline [&_strong]:text-primary-foreground [&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-3 [&_li]:pl-1 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h4]:text-sm [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-medium [&_h4]:font-medium [&_h1]:mb-2 [&_h2]:mb-2 [&_h3]:mb-1 [&_h4]:mb-1">
                   <ReactMarkdown>
                     {normalizeAssistantContent(m.content)}
                   </ReactMarkdown>

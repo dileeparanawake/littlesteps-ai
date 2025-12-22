@@ -7,6 +7,9 @@ import './globals.css';
 import ModalProvider from '@/components/providers/ModalProvider';
 import Header from '@/components/layout/Header';
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'https://littlesteps-ai.com';
+
 export const metadata: Metadata = {
   title: 'LittleSteps AI',
   description:
@@ -18,11 +21,11 @@ export const metadata: Metadata = {
     title: 'LittleSteps AI',
     description:
       'AI guidance for new parents - milestone and development support for the early years',
-    url: 'https://littlesteps-ai.com',
+    url: baseUrl,
     siteName: 'LittleSteps AI',
     images: [
       {
-        url: '/og',
+        url: `${baseUrl}/og`,
         width: 1200,
         height: 630,
         alt: 'LittleSteps AI - Guidance for new parents',
@@ -36,7 +39,10 @@ export const metadata: Metadata = {
     title: 'LittleSteps AI',
     description:
       'AI guidance for new parents - milestone and development support for the early years',
-    images: ['/og'],
+    images: [`${baseUrl}/og`],
+  },
+  other: {
+    'og:logo': `${baseUrl}/littlesteps_favicon.png`,
   },
 };
 

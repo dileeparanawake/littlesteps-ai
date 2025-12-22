@@ -9,6 +9,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { fetchThreads } from '@/lib/api/threads';
+import { useSidebar } from './SidebarContext';
 
 function SidebarNotice({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,13 @@ function ThreadItem({
   thread: ThreadRow;
   active: boolean;
 }) {
+  const { closeSidebar } = useSidebar();
+
+  const handleClick = () => {
+    // Close sidebar on mobile when thread is selected
+    closeSidebar();
+  };
+
   return (
     <div
       className={`p-2 rounded cursor-pointer transition-colors duration-150 ${
@@ -38,6 +46,7 @@ function ThreadItem({
       <Link
         className="text-sm text-muted-foreground hover:text-primary no-underline block"
         href={`/chat/${thread.id}`}
+        onClick={handleClick}
       >
         {thread.title}
       </Link>

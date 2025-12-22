@@ -54,8 +54,11 @@ export default function DeletedThreadButton({
   }
   return (
     <AlertDialog>
-      <AlertDialogTrigger aria-label="Delete thread">
-        <Trash2 className="h-3 w-3 hover:text-destructive transition-colors duration-200" />
+      <AlertDialogTrigger
+        aria-label="Delete thread"
+        className="opacity-70 hover:opacity-100 transition-opacity p-1"
+      >
+        <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive transition-colors duration-200" strokeWidth={1.5} />
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

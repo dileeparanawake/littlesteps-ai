@@ -1,16 +1,9 @@
-import { ChatSidebar } from '@/components/chat/ChatSidebar';
+import ChatLayoutClient from '@/components/chat/ChatLayoutClient';
 
 export default function ChatLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="h-full w-full flex overflow-hidden">
-      <aside className="w-64 border-r border-border/50 flex-shrink-0 overflow-y-auto">
-        <ChatSidebar />
-      </aside>
-      <main className="flex-1 min-w-0 h-full overflow-hidden">{children}</main>
-    </div>
-  );
+  return <ChatLayoutClient>{children}</ChatLayoutClient>;
 }
