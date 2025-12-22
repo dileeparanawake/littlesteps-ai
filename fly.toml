@@ -10,7 +10,7 @@ primary_region = 'lhr'
   dockerfile = "Dockerfile.prod"
 
 [env]
-  NEXT_PUBLIC_BETTER_AUTH_URL = "https://littlesteps-ai.fly.dev"
+  NEXT_PUBLIC_BETTER_AUTH_URL = "https://littlesteps-ai.com"
 
 [http_service]
   internal_port = 3000
