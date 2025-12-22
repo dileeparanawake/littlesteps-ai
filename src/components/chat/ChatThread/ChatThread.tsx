@@ -55,7 +55,6 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     }
 
     if (!prompt.trim()) {
-      console.log(`Whitespace validation:[${prompt}]`, `[${prompt.trim()}]`);
       setError('Please enter a prompt.');
       setIsLoading(false);
       return;

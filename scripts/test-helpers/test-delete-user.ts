@@ -6,8 +6,6 @@ import { testUserId } from './create-test-user';
 export async function deleteTestUser() {
   try {
     await db.delete(user).where(eq(user.id, testUserId));
-
-    console.log('Test user deleted');
   } catch (error) {
     console.error('Error deleting test user:', error);
     throw new Error(

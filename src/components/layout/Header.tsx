@@ -24,9 +24,6 @@ export default function Header() {
     // If the modal is open, and we finished loading, and there's no session — show error
     if (!isPending && sessionError) {
       setShowSignIn(true);
-      console.log(`session: ${session?.user}`);
-      console.log(`isPending: ${isPending}`);
-      console.log(`sessionError: ${sessionError}`);
     }
   }, [isPending, sessionError, session?.user, setShowSignIn]);
 

@@ -27,7 +27,6 @@ describe.sequential('updateThread', () => {
   it('updates a thread title', async () => {
     const newThread = await createThread(testUser.id);
 
-    console.log('newThread created:', newThread);
     const renamedThread = await renameThread(
       testUser.id,
       newThread.id,
