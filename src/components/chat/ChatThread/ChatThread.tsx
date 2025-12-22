@@ -13,6 +13,8 @@ import { useModal } from '@/components/providers/ModalProvider';
 import ThreadTitle from '@/components/chat/ChatThread/ThreadTitle';
 import { useRouter } from 'next/navigation';
 
+import SafetyBanner from '@/components/chat/ChatThread/SafetyBanner';
+
 type ChatThreadProps = {
   threadId?: string;
 };
@@ -145,6 +147,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
             isLoading={isLoading}
             error={error}
           />
+          <SafetyBanner />
         </div>
       </footer>
     </section>
