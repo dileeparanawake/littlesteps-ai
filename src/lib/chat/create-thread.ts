@@ -18,7 +18,5 @@ export async function createThread(
     })
     .returning();
 
-  // console.log('newThread Created', newThread);
-
   return newThread;
 }

@@ -2,19 +2,27 @@
 
 import ThreadList from './ThreadList';
 import Link from 'next/link';
+import { useSidebar } from './SidebarContext';
 
 export default function ChatSidebar() {
+  const { closeSidebar } = useSidebar();
+
+  const handleNewChatClick = () => {
+    closeSidebar();
+  };
+
   return (
     <div className="h-full flex flex-col bg-sidebar">
       {/* Header section - fixed */}
-      <div className="p-4 ">
+      <div className="p-4 pb-0 pr-12 md:pr-4">
         <div className="flex justify-between items-baseline">
-          <p className="text-sm font-bold leading-none tracking-tight">
+          <p className="text-sm font-semibold text-foreground leading-none tracking-tight">
             Chat History
           </p>
           <Link
             href="/chat"
             className="text-xs font-light text-muted-foreground hover:text-primary no-underline leading-none"
+            onClick={handleNewChatClick}
           >
             New Chat +
           </Link>

@@ -9,12 +9,13 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { fetchThreads } from '@/lib/api/threads';
+import { useSidebar } from './SidebarContext';
 
 function SidebarNotice({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="p-2">
-        <div className="text-sm text-muted-foreground p-2">{children}</div>
+      <div className="text-xs text-muted-foreground/50 text-center px-4 pt-4">
+        {children}
       </div>
     </div>
   );
@@ -27,17 +28,25 @@ function ThreadItem({
   thread: ThreadRow;
   active: boolean;
 }) {
+  const { closeSidebar } = useSidebar();
+
+  const handleClick = () => {
+    // Close sidebar on mobile when thread is selected
+    closeSidebar();
+  };
+
   return (
     <div
-      className={`p-2 rounded cursor-pointer ${
+      className={`p-2 rounded cursor-pointer transition-colors duration-150 ${
         active
           ? 'bg-muted font-medium border-l-2 border-primary'
-          : 'hover:bg-accent'
+          : 'hover:bg-accent hover:shadow-sm hover:border hover:border-border hover:text-primary'
       }`}
     >
       <Link
         className="text-sm text-muted-foreground hover:text-primary no-underline block"
         href={`/chat/${thread.id}`}
+        onClick={handleClick}
       >
         {thread.title}
       </Link>
@@ -67,11 +76,11 @@ export default function ThreadList() {
   });
 
   if (!session?.user)
-    return <SidebarNotice>Sign in to view chat history.</SidebarNotice>;
+    return <SidebarNotice>Log in to see your chat history.</SidebarNotice>;
   if (isLoading) return <SidebarNotice>Loading threads…</SidebarNotice>;
   if (isError) return <SidebarNotice>Error loading threads.</SidebarNotice>;
   if (!threads || threads.length === 0)
-    return <SidebarNotice>No threads created yet.</SidebarNotice>;
+    return <SidebarNotice>No chats created yet.</SidebarNotice>;
 
   return (
     <div className="flex-1 overflow-y-auto">

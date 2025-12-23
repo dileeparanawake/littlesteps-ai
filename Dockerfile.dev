@@ -1,12 +1,14 @@
 # Set base image
-FROM node:18-alpine
+# Adjust NODE_VERSION as desired
+ARG NODE_VERSION=20.19.3
+FROM node:${NODE_VERSION}-alpine AS base
 
 # Set working directory
 WORKDIR /app
 
-
-# Install pnpm globally
-RUN npm install -g pnpm
+# Install pnpm
+ARG PNPM_VERSION=10.13.1
+RUN npm install -g pnpm@$PNPM_VERSION
 
 # Copy only package manager files first (for better caching)
 COPY package.json pnpm-lock.yaml ./

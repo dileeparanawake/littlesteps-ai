@@ -19,7 +19,6 @@ export async function createTestUser({
       .values({ id, name, email })
       .returning();
 
-    console.log('newUser Created', newUser);
     return newUser;
   } catch (error) {
     console.error('Failed to create test user:', error);

@@ -16,7 +16,7 @@ export async function createTestUser() {
         email: 'test@example.com',
       })
       .returning();
-    console.log('newUser Created', newUser);
+
     return newUser;
   } catch (error) {
     console.error('Failed to create test user:', error);

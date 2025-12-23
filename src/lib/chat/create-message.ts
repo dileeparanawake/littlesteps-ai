@@ -33,8 +33,6 @@ export async function createMessage(
     })
     .returning();
 
-  // console.log('newMessage Created', newMessage);
-
   return newMessage;
 }
 

@@ -18,6 +18,6 @@ export type RoutePolicy = Record<string, AccessLevel>;
  * Maps route paths to their required access levels
  */
 export const routePolicy: RoutePolicy = {
-  '/api/chat': 'admin',
-  '/api/threads': 'admin',
+  '/api/chat': 'authenticated',
+  '/api/threads': 'authenticated',
 };

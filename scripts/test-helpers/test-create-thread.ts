@@ -8,8 +8,6 @@ import { testUserId } from './create-test-user';
 
 const title = 'Thread Test Title';
 
-console.log('\n\nDATABASE_URL:', process.env.DATABASE_URL);
-
 export async function createTestThread() {
   try {
     // Check if user exists
@@ -18,8 +16,6 @@ export async function createTestThread() {
       .from(user)
       .where(eq(user.id, testUserId))
       .then((rows) => rows[0]);
-
-    console.log('User exists:', existingUser);
 
     if (!existingUser) {
       throw new Error(`Test user with ID ${testUserId} does not exist`);

@@ -32,7 +32,6 @@ export default function SignInModal() {
     // If the modal is open, and we finished loading, and there's no session — show error
     if (!isPending && sessionError) {
       setError('Sign-in failed. Please try again.');
-      console.log('Sign in error:', sessionError);
     }
   }, [isPending, sessionError]);
 
@@ -46,7 +45,6 @@ export default function SignInModal() {
   // handlers
 
   const handleSignInClick = async () => {
-    console.log('sign in clicked');
     setIsAuthenticating(true);
     setError(null);
     setShowSignIn(true);

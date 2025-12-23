@@ -13,6 +13,9 @@ import { useModal } from '@/components/providers/ModalProvider';
 import ThreadTitle from '@/components/chat/ChatThread/ThreadTitle';
 import { useRouter } from 'next/navigation';
 
+import SafetyBanner from '@/components/chat/ChatThread/SafetyBanner';
+import { useSidebar } from '@/components/chat/ChatSidebar/SidebarContext';
+
 type ChatThreadProps = {
   threadId?: string;
 };
@@ -20,6 +23,8 @@ type ChatThreadProps = {
 export default function ChatThread({ threadId }: ChatThreadProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { openSidebar } = useSidebar();
+
   // hooks
   const { data: session } = authClient.useSession();
   const { setShowSignIn } = useModal();
@@ -55,7 +60,6 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     }
 
     if (!prompt.trim()) {
-      console.log(`Whitespace validation:[${prompt}]`, `[${prompt.trim()}]`);
       setError('Please enter a prompt.');
       setIsLoading(false);
       return;
@@ -108,15 +112,15 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     <section
       id="chat-thread"
       aria-labelledby="thread-title"
-      className="h-full flex flex-col overflow-hidden"
+      className="h-full flex flex-col overflow-hidden bg-muted/60"
     >
       {/* Header (fixed at top) */}
-      <header className="flex-shrink-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <ThreadTitle threadId={threadId} />
+      <header className="flex-shrink-0 bg-background/20 backdrop-blur-xl backdrop-saturate-150 sticky top-0 z-10">
+        <ThreadTitle threadId={threadId} onMenuClick={openSidebar} />
       </header>
 
       {/* Messages (scrollable middle section) */}
-      <div id="message-list" className="flex-1 overflow-y-auto min-h-0">
+      <div id="message-list" className="flex-1 overflow-y-auto min-h-0 -mt-0">
         <div
           className={
             threadId
@@ -129,16 +133,16 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
             <MessageList threadId={threadId} />
           ) : (
             // Empty state: centered between header and footer
-            <p className="text-base text-center text-muted-foreground">
-              Ask a question to get advice
+            <p className="text-sm text-center text-muted-foreground/70">
+              Get guidance on your child&apos;s development and milestones
             </p>
           )}
         </div>
       </div>
 
       {/* Input dock (fixed at bottom) */}
-      <footer className="flex-shrink-0 bg-background">
-        <div className="mx-auto w-full max-w-3xl px-4 py-3">
+      <footer className="flex-shrink-0">
+        <div className="mx-auto w-full max-w-3xl px-4 py-3 pt-0 pb-2">
           <ChatInput
             onPromptChange={handleInputChange}
             prompt={prompt}
@@ -146,6 +150,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
             isLoading={isLoading}
             error={error}
           />
+          <SafetyBanner />
         </div>
       </footer>
     </section>
