@@ -27,13 +27,22 @@ export default function ThreadTitle({
 
   const { data: threads } = useQuery({
     queryKey: ['threads', userId],
-    queryFn: fetchThreads,
-    enabled: !!userId,
+    queryFn: () => {
+      // Guard inside queryFn instead of disabling the query
+      // This prevents the query from being disabled during navigation on iOS
+      // when userId might temporarily be undefined
+      if (!userId) {
+        return Promise.resolve([]);
+      }
+      return fetchThreads();
+    },
+    // Removed enabled: !!userId to prevent query from being disabled
+    // during iOS navigation when session might temporarily be unavailable
   });
 
   const currentThread = threads?.find((t) => t.id === threadId);
   const displayTitle =
-    currentThread?.title ?? (threadId ? 'Untitled thread' : 'New chat');
+    currentThread?.title ?? (threadId ? 'Loading...' : 'New chat');
 
   const [editing, setEditing] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
