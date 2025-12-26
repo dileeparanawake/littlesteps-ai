@@ -1,12 +1,13 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { authClient } from '@/lib/auth-client';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 import { MessageList } from '@/components/chat/ChatThread/MessageList';
 import { ChatInput } from '@/components/chat/ChatThread/ChatInput';
+import { ScrollToBottomButton } from '@/components/chat/ChatThread/ScrollToBottomButton';
 
 import { useModal } from '@/components/providers/ModalProvider';
 
@@ -15,6 +16,7 @@ import { useRouter } from 'next/navigation';
 
 import SafetyBanner from '@/components/chat/ChatThread/SafetyBanner';
 import { useSidebar } from '@/components/chat/ChatSidebar/SidebarContext';
+import { fetchThreadMessages } from '@/lib/api/messages';
 
 type ChatThreadProps = {
   threadId?: string;
@@ -28,6 +30,21 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   // hooks
   const { data: session } = authClient.useSession();
   const { setShowSignIn } = useModal();
+
+  // Get messages to track count changes
+  const { data: messages } = useQuery({
+    queryKey: ['threadMessages', threadId],
+    queryFn: () =>
+      threadId ? fetchThreadMessages(threadId) : Promise.resolve([]),
+    enabled: !!threadId,
+  });
+
+  // Scroll tracking
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const previousMessageCountRef = useRef<number>(0);
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+  const [hasNewMessages, setHasNewMessages] = useState<boolean>(false);
+
   // states
   const [prompt, setPrompt] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -41,6 +58,77 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       sessionStorage.removeItem('savedPrompt');
     }
   }, []);
+
+  // Scroll position detection
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const checkScrollPosition = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      const threshold = 50; // Consider "at bottom" if within 50px
+      const atBottom = scrollHeight - scrollTop - clientHeight < threshold;
+      setIsAtBottom((prev) => {
+        // Reset hasNewMessages when user scrolls to bottom
+        if (atBottom && !prev) {
+          setHasNewMessages(false);
+        }
+        return atBottom;
+      });
+    };
+
+    scrollContainer.addEventListener('scroll', checkScrollPosition);
+    // Check initial position
+    checkScrollPosition();
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', checkScrollPosition);
+    };
+  }, []);
+
+  // Detect new messages
+  useEffect(() => {
+    if (!messages) return;
+
+    const currentCount = messages.length;
+    const previousCount = previousMessageCountRef.current;
+
+    // If message count increased, we have new messages
+    if (currentCount > previousCount && previousCount > 0) {
+      setHasNewMessages(true);
+    }
+
+    previousMessageCountRef.current = currentCount;
+  }, [messages]);
+
+  // Auto-scroll when at bottom and new messages arrive
+  useEffect(() => {
+    if (!isAtBottom || !hasNewMessages || !scrollContainerRef.current) return;
+
+    const scrollContainer = scrollContainerRef.current;
+    // Small delay to ensure DOM has updated
+    const timeoutId = setTimeout(() => {
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight,
+        behavior: 'smooth',
+      });
+      setHasNewMessages(false);
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [isAtBottom, hasNewMessages, messages]);
+
+  // Scroll to bottom handler
+  const handleScrollToBottom = () => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    scrollContainer.scrollTo({
+      top: scrollContainer.scrollHeight,
+      behavior: 'smooth',
+    });
+    setHasNewMessages(false);
+  };
 
   //handlers
 
@@ -120,7 +208,11 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       </header>
 
       {/* Messages (scrollable middle section) */}
-      <div id="message-list" className="flex-1 overflow-y-auto min-h-0 -mt-0">
+      <div
+        id="message-list"
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto min-h-0 -mt-0"
+      >
         <div
           className={
             threadId
@@ -129,7 +221,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
           }
         >
           {threadId ? (
-            // Render the message list when there’s an existing thread
+            // Render the message list when there's an existing thread
             <MessageList threadId={threadId} />
           ) : (
             // Empty state: centered between header and footer
@@ -139,6 +231,17 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
           )}
         </div>
       </div>
+
+      {/* Scroll to bottom button - positioned above input */}
+      {threadId && !isAtBottom && hasNewMessages && (
+        <div className="fixed bottom-32 left-0 right-0 z-30 pointer-events-none">
+          <div className="mx-auto w-full max-w-3xl px-4 flex justify-center">
+            <div className="pointer-events-auto">
+              <ScrollToBottomButton onClick={handleScrollToBottom} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Input dock (fixed at bottom) */}
       <footer className="flex-shrink-0 pb-safe">

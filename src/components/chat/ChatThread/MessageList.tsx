@@ -1,9 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import type { MessageRow } from '@/db/schema';
 
 import ReactMarkdown from 'react-markdown';
+import { fetchThreadMessages } from '@/lib/api/messages';
 
 function normalizeAssistantContent(s: string): string {
   // Turn Unicode bullets into markdown list items
@@ -13,23 +13,6 @@ function normalizeAssistantContent(s: string): string {
   // Collapse excessive blank lines
   out = out.replace(/\n{3,}/g, '\n\n');
   return out;
-}
-
-async function fetchThreadMessages(threadId: string): Promise<MessageRow[]> {
-  const res = await fetch(`/api/chat?threadId=${threadId}`);
-  if (!res.ok) {
-    try {
-      const data = await res.json();
-      throw new Error(data?.error ?? 'Failed to fetch thread messages');
-    } catch (error: unknown) {
-      const msg =
-        error instanceof Error
-          ? error?.message
-          : 'Failed to fetch thread messages';
-      throw new Error(msg);
-    }
-  }
-  return res.json();
 }
 
 type MessageListProps = {
