@@ -176,16 +176,21 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
         const { threadID } = await response.json();
         setPrompt('');
 
-        if (!threadId && session?.user?.id) {
+        // Invalidate threads query for both new and existing threads
+        // This ensures ThreadTitle stays visible after message submission
+        if (session?.user?.id) {
           queryClient.invalidateQueries({
             queryKey: ['threads', session.user.id],
           });
         }
-        router.push(`/chat/${threadID}`);
 
+        // Invalidate messages query for the thread
         queryClient.invalidateQueries({
           queryKey: ['threadMessages', threadID],
         });
+
+        // Navigate after invalidations are queued
+        router.push(`/chat/${threadID}`);
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
