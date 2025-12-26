@@ -163,3 +163,17 @@
     @apply border-l-4 pl-4 italic text-muted-foreground;
   }
 }
+
+@layer utilities {
+  .pb-safe {
+    /* Use safe-area-inset when available (iOS Safari), otherwise use smaller fallback */
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+  }
+
+  @media (min-width: 768px) {
+    .pb-safe {
+      /* Desktop: only use safe-area-inset, no fallback needed */
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
+}

@@ -57,7 +57,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <ModalProvider>
             <Header />
-            <div className="h-[calc(100vh-73px)] overflow-hidden">
+            <div className="h-[calc(100dvh-73px)] overflow-hidden">
               {children}
             </div>
           </ModalProvider>

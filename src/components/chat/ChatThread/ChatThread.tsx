@@ -141,7 +141,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       </div>
 
       {/* Input dock (fixed at bottom) */}
-      <footer className="flex-shrink-0">
+      <footer className="flex-shrink-0 pb-safe">
         <div className="mx-auto w-full max-w-3xl px-4 py-3 pt-0 pb-2">
           <ChatInput
             onPromptChange={handleInputChange}
