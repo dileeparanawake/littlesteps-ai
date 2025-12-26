@@ -48,7 +48,7 @@ export function ChatInput({
           placeholder="What would you like to know?"
           value={prompt}
           onChange={(e) => onPromptChange(e.target.value)}
-          className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-3 resize-none overflow-hidden min-h-9 max-h-32 leading-5 py-1"
+          className="flex-1 bg-transparent border-none text-base md:text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-3 resize-none overflow-hidden min-h-9 max-h-32 leading-5 py-1"
           rows={1}
         />
         <Button
