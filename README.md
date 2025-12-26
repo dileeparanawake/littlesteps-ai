@@ -9,12 +9,12 @@ AI guidance for new parents - a full-stack, auth-gated LLM chat, built with **Ne
 ---
 
 - 🗂️ [Project Kanban](https://github.com/users/dileeparanawake/projects/4/views/1)
-- 🏷️ Release tags: [MVS1](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs1-complete) · [MVS2](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs2-complete) · [MVS3](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs3-complete)
-- 🔍 [Diff since MVS2](https://github.com/dileeparanawake/littlesteps-ai/compare/mvs2-complete...HEAD)
+- 🏷️ Release tags: [MVS1](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs1-complete) · [MVS2](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs2-complete) · [MVS3](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs3-complete) · [MVS4](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs4-complete)
+- 🔍 [Diff MVS3 → MVS4](https://github.com/dileeparanawake/littlesteps-ai/compare/mvs3-complete...mvs4-complete)
 
 ## Demo
 
-![LittleSteps AI Demo MVS3 Complete](./public/screenshots/littlesteps-screen-recording-2025-10-21-MVS3-complete.gif)
+![LittleSteps AI Demo MVS3 Complete](./docs/screenshots/littlesteps-screen-recording-2025-10-21-MVS3-complete.gif)
 
 ### Skills demonstrated
 
@@ -22,12 +22,30 @@ AI guidance for new parents - a full-stack, auth-gated LLM chat, built with **Ne
 - Modelled and persisted data in **PostgreSQL** with **Drizzle ORM** and **SQL migrations**, containerised via **Docker Compose**.
 - Implemented **Google OAuth 2.0** authentication using **BetterAuth** with session-protected endpoints.
 - Validated and sanitised inputs using **Zod**; followed RESTful API conventions for predictable error handling.
-- Integrated **OpenAI’s API** for prompt–response handling on the server.
+- Integrated **OpenAI's API** for prompt–response handling on the server.
 - Wrote **DB-backed tests** with **Vitest + Docker Postgres** to verify core actions and data integrity.
+- Deployed to **Fly.io** with **Neon** managed PostgreSQL, HTTPS, secrets management, and production-ready configuration.
+- Implemented **access controls** and **usage limits** around AI usage, using an adapter pattern for the AI provider and **GitHub Actions** for automated deployment.
 
 ## Features by Minimum Viable Slice
 
 Each slice represents a tagged, working release — from basic prompt handling to full auth-gated history.
+
+<details>
+<summary><b>MVS4 — Production Deployment & Access Controls</b></summary>
+
+**Goal:** Deploy LittleSteps to Fly.io as a production-ready application with safety guardrails and access controls.
+
+**Key features**
+
+- Deployed to **Fly.io** with **Neon** managed PostgreSQL, HTTPS, and secrets management.
+- **RBAC on routes** for initial release (admin-only access to chat APIs).
+- **Usage limits** enforced for non-admin users.
+- **AI provider adapter** with prompt caching (threadId-based).
+- **UI improvements**: safety banner, disclaimer, Open Graph image, mobile-responsive layout.
+- **Automated CD** via GitHub Actions for production deployment.
+
+</details>
 
 <details>
 <summary><b>MVS3 — Prompt History & Persistence</b></summary>
@@ -74,12 +92,12 @@ Each slice represents a tagged, working release — from basic prompt handling t
 
 - **UI / App:** Next.js (App Router), React, TypeScript
 - **Data layer:** React Query (@tanstack/react-query)
-- **Database / ORM:** PostgreSQL (Docker) + Drizzle ORM (migrations)
+- **Database / ORM:** PostgreSQL (Docker, **Neon**) + Drizzle ORM (migrations)
 - **Auth:** BetterAuth.js (Google OAuth, HttpOnly sessions)
 - **Validation:** Zod
 - **LLM:** OpenAI API (SDK)
 - **Testing:** Vitest (DB-backed tests)
-- **Dev / Infra:** Node 20 (Volta), Docker & Docker Compose
+- **Dev / Infra:** Node 20 (Volta), Docker & Docker Compose, Fly.io (production), **GitHub Actions (CD)**
 
 > Note: SQLite was used in MVS2 only; MVS3 migrated to PostgreSQL.
 
@@ -123,7 +141,7 @@ User (id TEXT PK, email UNIQUE, name, createdAt, updatedAt)
 <details>
 <summary><b>API reference (expand)</b></summary>
 
-Authentication required for all endpoints (BetterAuth session).
+Authentication required for all endpoints (BetterAuth session). Usage limits are currently applied to authenticated non-admin users only.
 
 POST /api/chat?threadId=UUID (optional)
 
@@ -189,6 +207,7 @@ DELETE /api/threads
 - **App:** Next.js App Router; server routes for APIs, client components for UI.
 - **Auth/Data:** BetterAuth.js + Drizzle ORM → Postgres (UUID, sequence ordering).
 - **Client state:** React Query cache; invalidation on rename/delete/post.
+- **Deployment:** Dockerised Next.js app on **Fly.io**, connected to **Neon** managed PostgreSQL, deployed via **GitHub Actions**.
 
 ## Tests
 
@@ -200,7 +219,7 @@ DB-backed (Vitest + Docker Postgres): create/read/update/delete flows for thread
 
 ## Local Development
 
-See full guide: [`public/docs/local-dev-guide.md`](./public/docs/local-dev-guide.md)
+See full guide: [`public/docs/local-dev-guide.md`](./docs/local-dev-guide.md)
 
 Quick start:
 
@@ -211,6 +230,7 @@ pnpm migrate
 
 ## Releases
 
+- 2025-12-26 — MVS4: Production deployment & access controls — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs4-complete)
 - 2025-10-21 — MVS3: Prompt history & persistence — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs3-complete)
 - 2025-07-27 — MVS2: User Authentication — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs2-complete)
 - 2025-07-20 — MVS1: Prompt Interface — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs1-complete)
