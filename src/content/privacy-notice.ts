@@ -26,12 +26,12 @@ We receive and store the following from your Google account:
 
 ## Why we collect it
 
-| Data | Purpose | Lawful basis |
-|---|---|---|
-| Name, email, profile picture | To identify you and let you sign in | Legitimate interest - necessary to provide the service |
-| Chat messages and thread titles | To let you see and continue your conversations | Legitimate interest - necessary to provide the service |
-| IP address and user agent | Session security and management | Legitimate interest - necessary for security |
-| Token usage counts | To manage usage limits | Legitimate interest - necessary to operate the service |
+Our lawful basis for processing your data is **legitimate interest** - we need this data to provide and operate the service.
+
+- **Name, email, profile picture** - to identify you and let you sign in
+- **Chat messages and thread titles** - to let you see and continue your conversations
+- **IP address and user agent** - for session security and management
+- **Token usage counts** - to manage usage limits
 
 ## Children's data
 
@@ -111,7 +111,6 @@ We may update this policy from time to time. Changes will be posted on this page
 If you are unhappy with how we handle your data, you have the right to complain to the Information Commissioner's Office (ICO):
 
 - Website: https://ico.org.uk
-- Phone: 0303 123 1113
 
 ## Contact
 
