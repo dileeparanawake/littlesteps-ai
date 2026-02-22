@@ -82,6 +82,17 @@ export default function SignInModal() {
           >
             Sign in with Google
           </Button>
+          <p className="text-xs text-muted-foreground mt-3 text-center">
+            By signing in you agree to our{' '}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-primary transition-colors duration-200"
+            >
+              Privacy Policy
+            </a>
+          </p>
         </CardContent>
       </Card>
     </div>

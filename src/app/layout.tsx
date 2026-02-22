@@ -6,6 +6,7 @@ import './globals.css';
 
 import ModalProvider from '@/components/providers/ModalProvider';
 import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'https://littlesteps-ai.com';
@@ -57,9 +58,10 @@ export default function RootLayout({
         <ReactQueryProvider>
           <ModalProvider>
             <Header />
-            <div className="h-[calc(100dvh-73px)] overflow-hidden">
+            <div className="h-[calc(100dvh-73px-37px)] overflow-hidden">
               {children}
             </div>
+            <Footer />
           </ModalProvider>
         </ReactQueryProvider>
       </body>
