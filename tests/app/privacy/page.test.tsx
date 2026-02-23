@@ -19,16 +19,13 @@ describe('Privacy policy page (/privacy)', () => {
 
   it('renders without errors', async () => {
     await renderPage();
-    expect(screen.getByText(/privacy policy/i)).toBeTruthy();
+    expect(screen.getByRole('article')).toBeTruthy();
   });
 
-  it('displays the expected heading text', async () => {
+  it('passes privacy notice content to ReactMarkdown', async () => {
     await renderPage();
-    expect(screen.getByText(/Privacy Policy/)).toBeTruthy();
-  });
-
-  it('renders without authentication context', async () => {
-    await renderPage();
-    expect(screen.getByText(/privacy policy/i)).toBeTruthy();
+    expect(
+      screen.getByText(/this is the privacy policy content/i),
+    ).toBeTruthy();
   });
 });
