@@ -1,6 +1,6 @@
 export const privacyNotice = `# Privacy Policy
 
-**Last updated:** 2026-02-22
+**Last updated:** 2026-02-23
 
 LittleSteps AI is a personal demo project built and operated by Dileepa Ranawake, based in the United Kingdom.
 
@@ -71,9 +71,7 @@ We do not use any tracking cookies, analytics, or third-party scripts.
 
 ## Data retention
 
-We keep your data for as long as you have an account. There is no automatic deletion of inactive accounts at this time.
-
-You can request deletion of your account and all associated data at any time by emailing the address below.
+Accounts inactive for more than 90 days are periodically removed along with all associated data. If you want your data deleted sooner, you can request immediate deletion by emailing the address below.
 
 ## Your rights
 
@@ -91,7 +89,7 @@ We will respond within 30 days.
 
 ## How deletion works
 
-When your account is deleted, the following data is permanently removed:
+When your account is deleted - whether by automatic cleanup or by request - the following data is permanently removed:
 
 - Your user profile (name, email, profile picture)
 - All sessions (including IP addresses and user agents)
@@ -100,7 +98,7 @@ When your account is deleted, the following data is permanently removed:
 
 This is handled by cascade deletion in our database - removing your account automatically removes all associated data.
 
-To request deletion, email: general.dileepa@icloud.com
+To request immediate deletion, email: general.dileepa@icloud.com
 
 ## Changes to this policy
 
