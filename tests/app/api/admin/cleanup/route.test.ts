@@ -22,6 +22,12 @@ vi.mock('@/lib/cleanup/delete-inactive-users', () => ({
     mockDeleteInactiveUsers(...args),
 }));
 
+const mockPurgeExpiredVerifications = vi.fn();
+vi.mock('@/lib/cleanup/purge-expired-verifications', () => ({
+  purgeExpiredVerifications: (...args: unknown[]) =>
+    mockPurgeExpiredVerifications(...args),
+}));
+
 // --------------------------------------------------------------------------
 // Test helpers
 // --------------------------------------------------------------------------
@@ -364,6 +370,161 @@ describe('POST /api/admin/cleanup — server-side logging', () => {
         errorMessage: expect.any(String),
       }),
     );
+    errorSpy.mockRestore();
+  });
+});
+
+// --------------------------------------------------------------------------
+// Verification purge logging tests
+// --------------------------------------------------------------------------
+
+describe('POST /api/admin/cleanup — verification purge logging', () => {
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    mockVerifyGitHubOidc.mockResolvedValue({ success: true });
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+    vi.resetAllMocks();
+  });
+
+  it('logs verificationPurgeSucceeded after successful user deletion', async () => {
+    mockFindInactiveUsers.mockResolvedValue([
+      {
+        id: 'user-1',
+        email: 'user1@example.com',
+        lastActiveDate: new Date(),
+      },
+    ]);
+    mockDeleteInactiveUsers.mockResolvedValue(undefined);
+    mockPurgeExpiredVerifications.mockResolvedValue(3);
+
+    const { POST } = await import('@/app/api/admin/cleanup/route');
+    const req = createPostRequest('valid-token');
+
+    await POST(req);
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'verificationPurgeSucceeded',
+        success: true,
+        message: expect.any(String),
+        purgedCount: 3,
+      }),
+    );
+  });
+
+  it('logs verificationPurgeFailed when verification purge fails but user deletion succeeded', async () => {
+    mockFindInactiveUsers.mockResolvedValue([
+      {
+        id: 'user-1',
+        email: 'user1@example.com',
+        lastActiveDate: new Date(),
+      },
+    ]);
+    mockDeleteInactiveUsers.mockResolvedValue(undefined);
+    mockPurgeExpiredVerifications.mockRejectedValue(
+      new Error('Verification DB error'),
+    );
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { POST } = await import('@/app/api/admin/cleanup/route');
+    const req = createPostRequest('valid-token');
+
+    await POST(req);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'verificationPurgeFailed',
+        success: false,
+        message: expect.any(String),
+        errorMessage: expect.any(String),
+      }),
+    );
+    // User cleanup should still be logged as succeeded
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'userCleanupSucceeded',
+        success: true,
+      }),
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('still returns 200 with correct user deletion summary even when verification purge fails', async () => {
+    mockFindInactiveUsers.mockResolvedValue([
+      {
+        id: 'user-1',
+        email: 'user1@example.com',
+        lastActiveDate: new Date(),
+      },
+    ]);
+    mockDeleteInactiveUsers.mockResolvedValue(undefined);
+    mockPurgeExpiredVerifications.mockRejectedValue(
+      new Error('Verification DB error'),
+    );
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { POST } = await import('@/app/api/admin/cleanup/route');
+    const req = createPostRequest('valid-token');
+
+    const response = await POST(req);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      message: 'Inactive users deleted',
+      deletedCount: 1,
+    });
+    errorSpy.mockRestore();
+  });
+
+  it('logs verificationPurgeSucceeded after noop when no inactive users found', async () => {
+    mockFindInactiveUsers.mockResolvedValue([]);
+    mockPurgeExpiredVerifications.mockResolvedValue(5);
+
+    const { POST } = await import('@/app/api/admin/cleanup/route');
+    const req = createPostRequest('valid-token');
+
+    await POST(req);
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'verificationPurgeSucceeded',
+        success: true,
+        message: expect.any(String),
+        purgedCount: 5,
+      }),
+    );
+  });
+
+  it('does not call purgeExpiredVerifications when user deletion throws', async () => {
+    mockFindInactiveUsers.mockResolvedValue([
+      {
+        id: 'user-1',
+        email: 'user1@example.com',
+        lastActiveDate: new Date(),
+      },
+    ]);
+    mockDeleteInactiveUsers.mockRejectedValue(
+      new Error('DB connection failed'),
+    );
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { POST } = await import('@/app/api/admin/cleanup/route');
+    const req = createPostRequest('valid-token');
+
+    await POST(req);
+
+    expect(mockPurgeExpiredVerifications).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 });

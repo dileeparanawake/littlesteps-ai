@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { verifyGitHubOidc } from '@/lib/cleanup/verify-github-oidc';
 import { findInactiveUsers } from '@/lib/cleanup/find-inactive-users';
 import { deleteInactiveUsers } from '@/lib/cleanup/delete-inactive-users';
+import { purgeExpiredVerifications } from '@/lib/cleanup/purge-expired-verifications';
 import type { CleanupResponse, CleanupLogEntry } from '@/lib/cleanup/types';
 
 export async function POST(req: Request) {
@@ -35,6 +36,8 @@ export async function POST(req: Request) {
 
     const inactiveUsers = await findInactiveUsers();
 
+    let response: CleanupResponse;
+
     if (inactiveUsers.length === 0) {
       const logEntry: CleanupLogEntry = {
         action: 'userCleanupNoop',
@@ -44,30 +47,52 @@ export async function POST(req: Request) {
       };
       console.log(logEntry);
 
-      const response: CleanupResponse = {
+      response = {
         success: true,
         message: 'No inactive users found',
         deletedCount: 0,
       };
-      return NextResponse.json(response, { status: 200 });
+    } else {
+      await deleteInactiveUsers(inactiveUsers);
+
+      const logEntry: CleanupLogEntry = {
+        action: 'userCleanupSucceeded',
+        success: true,
+        message: 'Inactive user cleanup succeeded',
+        deletedUserIds: inactiveUsers.map((u) => u.id),
+        deletedCount: inactiveUsers.length,
+      };
+      console.log(logEntry);
+
+      response = {
+        success: true,
+        message: 'Inactive users deleted',
+        deletedCount: inactiveUsers.length,
+      };
     }
 
-    await deleteInactiveUsers(inactiveUsers);
+    try {
+      const purgedCount = await purgeExpiredVerifications();
+      const purgeLog: CleanupLogEntry = {
+        action: 'verificationPurgeSucceeded',
+        success: true,
+        message: 'Expired verification cleanup succeeded',
+        purgedCount,
+      };
+      console.log(purgeLog);
+    } catch (purgeError: unknown) {
+      const purgeLog: CleanupLogEntry = {
+        action: 'verificationPurgeFailed',
+        success: false,
+        message: 'Expired verification cleanup failed',
+        errorMessage:
+          purgeError instanceof Error
+            ? purgeError.message
+            : String(purgeError),
+      };
+      console.error(purgeLog);
+    }
 
-    const logEntry: CleanupLogEntry = {
-      action: 'userCleanupSucceeded',
-      success: true,
-      message: 'Inactive user cleanup succeeded',
-      deletedUserIds: inactiveUsers.map((u) => u.id),
-      deletedCount: inactiveUsers.length,
-    };
-    console.log(logEntry);
-
-    const response: CleanupResponse = {
-      success: true,
-      message: 'Inactive users deleted',
-      deletedCount: inactiveUsers.length,
-    };
     return NextResponse.json(response, { status: 200 });
   } catch (error: unknown) {
     const logEntry: CleanupLogEntry = {
