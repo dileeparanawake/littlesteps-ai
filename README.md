@@ -9,8 +9,8 @@ AI guidance for new parents - a full-stack, auth-gated LLM chat, built with **Ne
 ---
 
 - 🗂️ [Project Kanban](https://github.com/users/dileeparanawake/projects/4/views/1)
-- 🏷️ Release tags: [MVS1](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs1-complete) · [MVS2](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs2-complete) · [MVS3](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs3-complete) · [MVS4](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs4-complete)
-- 🔍 [Diff MVS3 → MVS4](https://github.com/dileeparanawake/littlesteps-ai/compare/mvs3-complete...mvs4-complete)
+- 🏷️ Release tags: [MVS1](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs1-complete) · [MVS2](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs2-complete) · [MVS3](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs3-complete) · [MVS4](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs4-complete) · [MVS5](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs5-complete)
+- 🔍 [Diff MVS4 → MVS5](https://github.com/dileeparanawake/littlesteps-ai/compare/mvs4-complete...mvs5-complete)
 
 ## Demo
 
@@ -26,10 +26,26 @@ AI guidance for new parents - a full-stack, auth-gated LLM chat, built with **Ne
 - Wrote **DB-backed tests** with **Vitest + Docker Postgres** to verify core actions and data integrity.
 - Deployed to **Fly.io** with **Neon** managed PostgreSQL, HTTPS, secrets management, and production-ready configuration.
 - Implemented **access controls** and **usage limits** around AI usage, using an adapter pattern for the AI provider and **GitHub Actions** for automated deployment.
+- Implemented **GDPR compliance** with a privacy policy page, automated inactive-user cleanup via **GitHub Actions OIDC**, and cascade deletes for data retention.
 
 ## Features by Minimum Viable Slice
 
 Each slice represents a tagged, working release — from basic prompt handling to full auth-gated history.
+
+<details>
+<summary><b>MVS5 — GDPR Compliance & Data Retention</b></summary>
+
+**Goal:** Make LittleSteps GDPR-compliant with transparent privacy practices and automated data retention.
+
+**Key features**
+
+- **Privacy policy page** (`/privacy`) with footer and sign-in modal links.
+- **Automated inactive-user deletion** — monthly GitHub Actions workflow deletes accounts inactive for 90+ days.
+- **OIDC-secured admin endpoint** (`/api/admin/cleanup`) authenticated via GitHub Actions OIDC tokens.
+- **Verification table cleanup** decoupled from user deletion for independent lifecycle management.
+- Admin users excluded from auto-deletion; cascade deletes handle all related data.
+
+</details>
 
 <details>
 <summary><b>MVS4 — Production Deployment & Access Controls</b></summary>
@@ -230,6 +246,7 @@ pnpm migrate
 
 ## Releases
 
+- 2026-02-24 — MVS5: GDPR compliance & data retention — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs5-complete)
 - 2025-12-26 — MVS4: Production deployment & access controls — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs4-complete)
 - 2025-10-21 — MVS3: Prompt history & persistence — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs3-complete)
 - 2025-07-27 — MVS2: User Authentication — [Tag](https://github.com/dileeparanawake/littlesteps-ai/releases/tag/mvs2-complete)
