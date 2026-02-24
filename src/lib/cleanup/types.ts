@@ -31,4 +31,16 @@ export type CleanupLogEntry =
       success: false;
       message: string;
       errorMessage: string;
+    }
+  | {
+      action: 'verificationPurgeSucceeded';
+      success: true;
+      message: string;
+      purgedCount: number;
+    }
+  | {
+      action: 'verificationPurgeFailed';
+      success: false;
+      message: string;
+      errorMessage: string;
     };

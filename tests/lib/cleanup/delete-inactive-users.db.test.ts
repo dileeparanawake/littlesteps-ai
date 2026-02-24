@@ -2,14 +2,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { db } from '@/db';
-import {
-  user,
-  session,
-  account,
-  verification,
-  thread,
-  message,
-} from '@/db/schema';
+import { user, session, account, thread, message } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { wipeDB } from '../../helpers/wipe-db';
 import { deleteInactiveUsers } from '@/lib/cleanup/delete-inactive-users';
@@ -67,15 +60,6 @@ async function insertMessage(threadId: string, sequence: number) {
     sequence,
     role: 'user',
     content: `Test message ${sequence}`,
-  });
-}
-
-async function insertVerification(identifier: string) {
-  await db.insert(verification).values({
-    id: `verification-${identifier}-${Date.now()}`,
-    identifier,
-    value: 'test-value',
-    expiresAt: new Date(Date.now() + 86400000),
   });
 }
 
@@ -157,29 +141,9 @@ describe.sequential('deleteInactiveUsers', () => {
     expect(remainingMessages).toHaveLength(0);
   });
 
-  it('cleans up verification table rows matching deleted user emails', async () => {
-    await insertUser('verify-user', 'verify@example.com');
-    await insertVerification('verify@example.com');
-
-    await deleteInactiveUsers([
-      {
-        id: 'verify-user',
-        email: 'verify@example.com',
-        lastActiveDate: new Date(),
-      },
-    ]);
-
-    const remainingVerifications = await db
-      .select()
-      .from(verification)
-      .where(eq(verification.identifier, 'verify@example.com'));
-    expect(remainingVerifications).toHaveLength(0);
-  });
-
   it('handles empty inactive user list gracefully (no-op, no errors)', async () => {
     await insertUser('safe-user', 'safe@example.com');
     await insertSession('safe-user', 'session-safe');
-    await insertVerification('safe@example.com');
 
     await deleteInactiveUsers([]);
 
@@ -191,14 +155,9 @@ describe.sequential('deleteInactiveUsers', () => {
       .select()
       .from(session)
       .where(eq(session.userId, 'safe-user'));
-    const remainingVerifications = await db
-      .select()
-      .from(verification)
-      .where(eq(verification.identifier, 'safe@example.com'));
 
     expect(remainingUsers).toHaveLength(1);
     expect(remainingSessions).toHaveLength(1);
-    expect(remainingVerifications).toHaveLength(1);
   });
 
   it('does not delete users not in the provided list', async () => {
