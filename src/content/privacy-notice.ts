@@ -1,6 +1,6 @@
 export const privacyNotice = `# Privacy Policy
 
-**Last updated:** 2026-02-23
+**Last updated:** 2026-10-22
 
 LittleSteps AI is a personal demo project built and operated by Dileepa Ranawake, based in the United Kingdom.
 
@@ -80,12 +80,13 @@ Under UK GDPR, you have the right to:
 - **Access** your data - request a copy of what we hold about you
 - **Correct** inaccurate data
 - **Delete** your data - request that we remove your account and all associated data
+- **Restrict** how we process your data
 - **Object** to our processing of your data
 - **Data portability** - request your data in a portable format
 
 To exercise any of these rights, email: general.dileepa@icloud.com
 
-We will respond within 30 days.
+We will respond within one month.
 
 ## How deletion works
 
@@ -106,7 +107,13 @@ We may update this policy from time to time. Changes will be posted on this page
 
 ## Complaints
 
-If you are unhappy with how we handle your data, you have the right to complain to the Information Commissioner's Office (ICO):
+If you are unhappy with how we handle your data, you have the right to complain to us. Please contact us first, so we can try to put it right:
+
+- Email: general.dileepa@icloud.com
+
+We will acknowledge your complaint within 30 days, look into it, and tell you the outcome without undue delay.
+
+You also have the right to complain to the Information Commission, the UK data protection regulator (it replaced the Information Commissioner's Office on 30 September 2026):
 
 - Website: https://ico.org.uk
 

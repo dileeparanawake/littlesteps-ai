@@ -29,3 +29,24 @@ describe('Privacy policy page (/privacy)', () => {
     ).toBeTruthy();
   });
 });
+
+describe('Privacy notice content', () => {
+  async function loadNotice() {
+    const mod = await vi.importActual<
+      typeof import('@/content/privacy-notice')
+    >('@/content/privacy-notice');
+    return mod.privacyNotice;
+  }
+
+  it('asks people to complain to us first', async () => {
+    const notice = await loadNotice();
+    expect(notice).toMatch(/right to complain to us/i);
+    expect(notice).toMatch(/acknowledge your complaint within 30 days/i);
+  });
+
+  it('names the Information Commission as the regulator', async () => {
+    const notice = await loadNotice();
+    expect(notice).toMatch(/complain to the Information Commission,/);
+    expect(notice).toContain('https://ico.org.uk');
+  });
+});
