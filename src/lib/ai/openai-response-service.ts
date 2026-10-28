@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
+import type { ReasoningEffort } from 'openai/resources/shared';
 import type {
   Message,
   ResponseOptions,
@@ -20,10 +21,13 @@ class OpenAIResponseServiceImpl implements AIResponseService {
     options?: ResponseOptions,
   ): Promise<AIResponse> {
     // Build request parameters
+    // gpt-5-nano shuts down 11 Dec 2026; gpt-6-luna is OpenAI's current
+    // cost-sensitive model. It has no 'minimal' effort; 'none' is the closest.
+    // The pinned SDK's ReasoningEffort type predates 'none', hence the cast.
     const requestParams: ChatCompletionCreateParamsNonStreaming = {
-      model: 'gpt-5-nano',
+      model: 'gpt-6-luna',
       messages: messages,
-      reasoning_effort: 'minimal',
+      reasoning_effort: 'none' as unknown as ReasoningEffort,
     };
 
     // Add prompt_cache_key only when threadId is provided
