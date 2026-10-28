@@ -72,9 +72,9 @@ describe('OpenAIResponseService', () => {
     expect(mockCreateCompletion).toHaveBeenCalledTimes(1);
     expect(mockCreateCompletion).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: 'gpt-5-nano',
+        model: 'gpt-6-luna',
         messages: sampleMessages,
-        reasoning_effort: 'minimal',
+        reasoning_effort: 'none',
       }),
     );
   });
@@ -99,9 +99,9 @@ describe('OpenAIResponseService', () => {
     expect(mockCreateCompletion).toHaveBeenCalledTimes(1);
     expect(mockCreateCompletion).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: 'gpt-5-nano',
+        model: 'gpt-6-luna',
         messages: sampleMessages,
-        reasoning_effort: 'minimal',
+        reasoning_effort: 'none',
         prompt_cache_key: threadId,
       }),
     );
@@ -124,9 +124,9 @@ describe('OpenAIResponseService', () => {
     expect(mockCreateCompletion).toHaveBeenCalledTimes(1);
     const callArgs = mockCreateCompletion.mock.calls[0][0];
     expect(callArgs).toEqual({
-      model: 'gpt-5-nano',
+      model: 'gpt-6-luna',
       messages: sampleMessages,
-      reasoning_effort: 'minimal',
+      reasoning_effort: 'none',
     });
     expect(callArgs).not.toHaveProperty('prompt_cache_key');
   });
