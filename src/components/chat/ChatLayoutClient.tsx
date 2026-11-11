@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/chat/ChatSidebar/SidebarContext';
+import { ChatStatusProvider } from '@/components/chat/ChatStatus';
 
 type ChatLayoutClientProps = {
   children: React.ReactNode;
@@ -32,7 +33,7 @@ export default function ChatLayoutClient({ children }: ChatLayoutClientProps) {
 
         {/* Main content */}
         <main className="flex-1 min-w-0 h-full overflow-hidden">
-          {children}
+          <ChatStatusProvider>{children}</ChatStatusProvider>
         </main>
       </div>
     </SidebarProvider>
