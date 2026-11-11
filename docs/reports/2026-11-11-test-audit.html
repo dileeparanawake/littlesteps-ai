@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LittleSteps test audit</title>
+<style>
+:root{
+  --bg:#fbfaf7;--card:#ffffff;--ink:#1d1f24;--soft:#5b616e;--line:#e3e1db;
+  --block-bg:#fde4e1;--block-ink:#8f1d12;--block-edge:#d9473a;
+  --warn-bg:#fff1cc;--warn-ink:#7a4d00;--warn-edge:#d99a00;
+  --none-bg:#eceef1;--none-ink:#4a505c;--none-edge:#9aa1ad;
+  --ok-bg:#dff3e4;--ok-ink:#1d5e2e;--ok-edge:#3c9a57;
+  --detail-bg:#efe6fb;--detail-ink:#5a2d91;
+  --accent:#2457c5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171b;--card:#1e2127;--ink:#eceae6;--soft:#a5abb6;--line:#343842;
+    --block-bg:#4a1d19;--block-ink:#ffc2bb;--block-edge:#e2685c;
+    --warn-bg:#47380f;--warn-ink:#ffdf8f;--warn-edge:#e0ae2a;
+    --none-bg:#2b2f37;--none-ink:#c3c8d1;--none-edge:#6d7480;
+    --ok-bg:#183a22;--ok-ink:#b4ecc2;--ok-edge:#4fb36c;
+    --detail-bg:#33244a;--detail-ink:#dcc6fb;
+    --accent:#86a8ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171b;--card:#1e2127;--ink:#eceae6;--soft:#a5abb6;--line:#343842;
+  --block-bg:#4a1d19;--block-ink:#ffc2bb;--block-edge:#e2685c;
+  --warn-bg:#47380f;--warn-ink:#ffdf8f;--warn-edge:#e0ae2a;
+  --none-bg:#2b2f37;--none-ink:#c3c8d1;--none-edge:#6d7480;
+  --ok-bg:#183a22;--ok-ink:#b4ecc2;--ok-edge:#4fb36c;
+  --detail-bg:#33244a;--detail-ink:#dcc6fb;
+  --accent:#86a8ff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Verdana,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.5rem;line-height:1.25;margin:0 0 4px}
+h2{font-size:1.2rem;margin:36px 0 8px;padding-top:12px;border-top:2px solid var(--line)}
+h3{font-size:1rem;margin:18px 0 6px}
+p{margin:6px 0;max-width:62ch}
+.sub{color:var(--soft);font-size:.9rem;margin:0 0 16px}
+a{color:var(--accent)}
+code{font-size:.85em;background:var(--none-bg);padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
+.p{font-style:normal;display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.02em;padding:2px 6px;border-radius:5px;border:1px solid;white-space:nowrap;line-height:1.5}
+.p.b{background:var(--block-bg);color:var(--block-ink);border-color:var(--block-edge)}
+.p.w{background:var(--warn-bg);color:var(--warn-ink);border-color:var(--warn-edge)}
+.p.ok{background:var(--ok-bg);color:var(--ok-ink);border-color:var(--ok-edge)}
+.p.d{background:var(--detail-bg);color:var(--detail-ink);border-color:var(--detail-ink)}
+.stat{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:12px 14px;margin:12px 0}
+.big{font-size:2rem;font-weight:800;line-height:1.1}
+.bar{display:flex;height:14px;border-radius:6px;overflow:hidden;margin:8px 0;border:1px solid var(--line)}
+.bar i{display:block;background:var(--ok-edge)}
+.bar s{display:block;background:var(--detail-ink)}
+.bar u{display:block;background:var(--warn-edge)}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--soft);margin:4px 0}
+.small{font-size:.85rem;color:var(--soft)}
+.top{list-style:none;padding:0;margin:8px 0;counter-reset:n}
+.top li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px 8px 40px;margin:6px 0;position:relative;counter-increment:n}
+.top li::before{content:counter(n);position:absolute;left:12px;top:6px;font-size:1.2rem;font-weight:800;color:var(--accent)}
+.top b{display:block}
+.top .fix{display:block;font-size:.88rem;color:var(--soft)}
+.top .fix::before{content:"Fix: ";font-weight:700;color:var(--ok-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{font-size:.8rem;font-weight:700;padding:4px 8px;border-radius:6px;border:1px solid}
+.chip.ms{background:var(--block-bg);color:var(--block-ink);border-color:var(--block-edge)}
+.chip.pt{background:var(--warn-bg);color:var(--warn-ink);border-color:var(--warn-edge)}
+.chip.ok{background:var(--ok-bg);color:var(--ok-ink);border-color:var(--ok-edge)}
+.area{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+.area h3{margin:0 0 4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.dl{list-style:none;padding:0;margin:6px 0 0}
+.dl li{padding:6px 0;border-top:1px solid var(--line);font-size:.9rem}
+.dl li .why{display:block;color:var(--soft);font-size:.85rem}
+.flow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0}
+.flow .w{grid-column:1/-1;font-size:.85rem;color:var(--soft)}
+.note{font-size:.85rem;color:var(--soft);border-left:3px solid var(--line);padding-left:10px;margin:10px 0}
+@media (max-width:420px){body{font-size:16px}.big{font-size:1.6rem}}
+</style>
+</head>
+<body>
+<main>
+
+<h1>LittleSteps: do the tests check behaviour?</h1>
+<p class="sub">Test audit · 11 Nov 2026 · littlesteps-ai#75 · main at <code>95a61b8</code> · report only, no code or tests changed</p>
+
+<div class="stat">
+<div class="big">71% behaviour</div>
+<div class="bar" aria-label="155 behaviour, 57 implementation detail, 5 brittle"><i style="width:71.4%"></i><s style="width:26.3%"></s><u style="width:2.3%"></u></div>
+<div class="key"><span><i class="p ok">BEHAVIOUR</i> 155</span><span><i class="p d">DETAIL</i> 57</span><span><i class="p w">BRITTLE</i> 5</span><span>217 tests: 214 unit + 3 browser</span></div>
+<p class="small">Every test passes: unit 214/214 (5.8 s, on a throwaway local database), browser 2/2 local (real OpenAI call) and 4/4 live signed-out. But <b>no CI job runs any of them</b>: a push to main deploys to Fly with no test step.</p>
+</div>
+
+<h2 style="border:0;margin-top:18px;padding-top:0">Top 5 risky tests</h2>
+<ol class="top">
+<li><b>The API route tests fake the access rules (about 20 tests).</b><code>chat/route</code> and <code>threads/route</code> replace <code>enforceAccess</code> with a stand-in that returns 401 or 403, then check the route returns it. The real rule list (<code>/api/chat</code> and <code>/api/threads</code> need sign-in) is never tested. Setting <code>/api/chat</code> to public would pass all 214 unit tests.<span class="fix">one table test that calls each real handler (GET, POST, PATCH, DELETE) signed out and expects 401, with the real rules.</span></li>
+<li><b>"Someone else's chat" is only ever faked.</b><code>userOwnsThread</code> has no database test. The 403 tests give it a fake "no". A bug there would let one parent read, post to, rename or delete another parent's chat.<span class="fix">a database test with two users: B gets 403 on A's chat for read, post, rename and delete.</span></li>
+<li><b>Token saving pins how many arguments a function gets (5 tests).</b>They check <code>addMessageToThread</code> was called with exactly 3 or 4 arguments (<code>call.length</code>). Moving to an options object breaks them, with no change for users.<span class="fix">send a message, then check the reply's row has its tokens and the weekly total went up.</span></li>
+<li><b>The usage-cap route tests are circular (7 tests).</b>A stand-in returns 429 and the test checks the route returns 429. Two tests are the same. "Admin regardless of usage" never involves an admin. <code>enforceUsageLimit</code> is tested by spying on <code>usageLimitInternal</code>, an export that exists only for the tests.<span class="fix">seed a week of usage at the cap, POST a question, expect 429 and no OpenAI call; an admin with the same usage gets 200.</span></li>
+<li><b>The browser test needs the live model to answer with a bullet list.</b><code>chat-flow</code> asks OpenAI for "3 tips as a bulleted list" and fails if the reply has no list. A model change or an odd reply makes it red, and each run costs a little.<span class="fix">for the everyday run, check a reply appears and renders; keep one real-model run as a release smoke test.</span></li>
+</ol>
+
+<h2 style="border:0;margin-top:18px;padding-top:0">Main flows with no test</h2>
+<div class="chips">
+<span class="chip ms">Rename a chat (UI)</span>
+<span class="chip ms">Delete a chat (UI)</span>
+<span class="chip ms">Open an old chat from the list</span>
+<span class="chip ms">Hit the weekly limit: what the parent sees</span>
+<span class="chip ms">Sign out</span>
+<span class="chip ms">Bad input gets 400 (empty question, title over 60)</span>
+<span class="chip ms">Another parent's chat (real check)</span>
+<span class="chip pt">Real Google sign-in (seeded in tests)</span>
+<span class="chip pt">Safety banner shown</span>
+</div>
+<p class="small">Red: no automated test. Amber: only covered around the edge (a seeded session; nothing checks the banner).</p>
+
+<h2>1. The tests, by area</h2>
+<p><i class="p ok">BEHAVIOUR</i> checks what a parent, an admin or the cleanup job sees. <i class="p d">DETAIL</i> checks how it's built: which internal function was called, with which arguments, or a TypeScript type. <i class="p w">BRITTLE</i> checks a real behaviour but pins wording or a model's output.</p>
+
+<div class="area"><h3><span>Chat API route</span><span class="small">24 · 6 B · 17 D · 1 brittle</span></h3>
+<div class="bar"><i style="width:25%"></i><s style="width:71%"></s><u style="width:4%"></u></div>
+<ul class="dl">
+<li><i class="p d">DETAIL</i> 401 and 403 for POST and GET (4) <span class="why">The stand-in access check decides the status; the test reads it back.</span></li>
+<li><i class="p d">DETAIL</i> "calls enforceAccess with /api/chat" (2), "does not parse the body when denied" <span class="why">Call order and arguments, not an outcome.</span></li>
+<li><i class="p d">DETAIL</i> content extraction (2) and token usage (3) <span class="why">Read <code>mock.calls</code> by index and count arguments.</span></li>
+<li><i class="p d">DETAIL</i> usage cap: at cap, above cap (same test twice), below cap, admin <span class="why">Circular: a stand-in returns the answer.</span></li>
+<li><i class="p w">BRITTLE</i> "throws when WEEKLY_CAP_TOKENS is missing" <span class="why">Pins that the 500 reply shows the server's own error text. That also tells any visitor a setting's name: the route returns <code>error.message</code> as is.</span></li>
+<li><i class="p ok">BEHAVIOUR</i> not your chat gives 403; existing chat keeps its id; new chat gets one; no OpenAI call and no reply saved when over the cap (6)</li>
+</ul></div>
+
+<div class="area"><h3><span>Threads API route</span><span class="small">15 · 3 B · 12 D</span></h3>
+<div class="bar"><i style="width:20%"></i><s style="width:80%"></s></div>
+<ul class="dl">
+<li><i class="p d">DETAIL</i> 401 and 403 for GET, PATCH, DELETE; "success"; "calls enforceAccess" (12) <span class="why">Same pattern as the chat route. "Success" returns what the stand-in rename returned.</span></li>
+<li><i class="p ok">BEHAVIOUR</i> not your chat gives 403 (rename, delete); deleting a missing chat gives 404</li>
+</ul></div>
+
+<div class="area"><h3><span>Usage limit</span><span class="small">33 · 28 B · 5 D</span></h3>
+<div class="bar"><i style="width:85%"></i><s style="width:15%"></s></div>
+<p class="small">Good: weekly totals, only assistant replies count, other weeks ignored, the cap setting must be a positive number, admins are never capped. All on a real database.</p>
+<ul class="dl">
+<li><i class="p d">DETAIL</i> "returns dates in UTC" <span class="why">Checks only that start is before end. It can't fail on its subject.</span></li>
+<li><i class="p d">DETAIL</i> "calls getAdminEmails", "calls getWeeklyCapTokens", "calls checkWeeklyUsageLimit with…" (4) <span class="why">Spies on internal helpers.</span></li>
+</ul></div>
+
+<div class="area"><h3><span>Access rules</span><span class="small">41 · 29 B · 12 D</span></h3>
+<div class="bar"><i style="width:71%"></i><s style="width:29%"></s></div>
+<p class="small"><code>decideAccess</code>, <code>enforceAccess</code>, admin emails and the session guard are good behaviour tests. But <code>enforce.test</code> swaps the real rule list for a made-up one.</p>
+<ul class="dl">
+<li><i class="p d">DETAIL</i> <code>policy.test</code>: "accepts public as a valid access level" and 5 more <span class="why">Test TypeScript types and key spelling at run time. They can't fail on anything a user meets.</span></li>
+<li><i class="p d">DETAIL</i> <code>toAuthContext</code> (4), <code>getAccessLevel</code> (2) <span class="why">Internal helpers' return shapes.</span></li>
+</ul></div>
+
+<div class="area"><h3><span>Chats, messages, history (database)</span><span class="small">28 · 28 B</span></h3>
+<div class="bar"><i style="width:100%"></i></div>
+<p class="small">Create, read in order, rename, delete, tokens saved. Real database. Missing: <code>userOwnsThread</code>.</p></div>
+
+<div class="area"><h3><span>Inactive-user cleanup</span><span class="small">42 · 33 B · 7 D · 2 brittle</span></h3>
+<div class="bar"><i style="width:79%"></i><s style="width:17%"></s><u style="width:4%"></u></div>
+<p class="small">Good: who counts as inactive (90 days), admins kept, cascade deletes, expired codes purged, GitHub OIDC checks, no error details leaked.</p>
+<ul class="dl">
+<li><i class="p d">DETAIL</i> the 7 log tests (<code>userCleanupSucceeded</code> and others) <span class="why">They pin log action names. Useful to whoever reads the logs, but any rename breaks them.</span></li>
+<li><i class="p w">BRITTLE</i> "message Inactive users deleted" and "No inactive users found" <span class="why">They pin the reply wording. The GitHub job only prints it.</span></li>
+</ul></div>
+
+<div class="area"><h3><span>Pages and test support</span><span class="small">31 · 26 B · 4 D · 1 brittle</span></h3>
+<div class="bar"><i style="width:84%"></i><s style="width:13%"></s><u style="width:3%"></u></div>
+<ul class="dl">
+<li><i class="p ok">BEHAVIOUR</i> privacy page renders; complaint route and ICO named (legal lines: kept on purpose); footer and sign-in link to /privacy in a new tab; OpenAI reply handling (10); the test sign-in seed refuses production (8)</li>
+<li><i class="p w">BRITTLE</i> sign-in modal "by signing in you agree to our" <span class="why">Pins a sentence; the link test already covers the behaviour.</span></li>
+<li><i class="p d">DETAIL</i> <code>main.test</code> "should be true"; <code>create-user</code> tests the test helper; footer "renders a footer tag"; seed cookie format <span class="why">The first two can never fail.</span></li>
+</ul></div>
+
+<div class="area"><h3><span>Browser (Playwright)</span><span class="small">3 · 2 B · 1 brittle</span></h3>
+<div class="bar"><i style="width:67%"></i><u style="width:33%"></u></div>
+<ul class="dl">
+<li><i class="p ok">BEHAVIOUR</i> live: pages answer 200; a signed-out visitor is asked to sign in, no sideways scroll</li>
+<li><i class="p w">BRITTLE</i> local: sign in, two questions, two replies <span class="why">The best test here, but it needs the real model to return a bullet list.</span></li>
+</ul></div>
+
+<h2>2. Main flows and their tests</h2>
+<div class="flow"><span>Land, type, asked to sign in</span><i class="p ok">browser · live</i></div>
+<div class="flow"><span>Signed in: ask, reply shows, ask again</span><i class="p ok">browser</i></div>
+<div class="flow"><span>Weekly limit: no more replies</span><i class="p w">logic only</i><span class="w">Unit tests on a real database. Nothing checks what the parent sees.</span></div>
+<div class="flow"><span>Signed out cannot use the API</span><i class="p w">faked</i><span class="w">Rule logic tested; the real route list never tested.</span></div>
+<div class="flow"><span>Chat history in the sidebar, open an old chat</span><i class="p w">database only</i></div>
+<div class="flow"><span>Rename a chat</span><i class="p w">database only</i><span class="w">The 60-character limit is not tested at the API.</span></div>
+<div class="flow"><span>Delete a chat</span><i class="p w">database only</i></div>
+<div class="flow"><span>Another parent's chat is off limits</span><i class="p b">faked</i></div>
+<div class="flow"><span>Sign out</span><i class="p b">none</i></div>
+<div class="flow"><span>Privacy page and links</span><i class="p ok">unit</i></div>
+<div class="flow"><span>Inactive accounts deleted after 90 days</span><i class="p ok">unit + database</i><span class="w">The monthly GitHub job itself is not tested.</span></div>
+
+<h2>3. What to do, ranked</h2>
+<ol class="top">
+<li><b>Run the tests before deploy.</b>Add a test job to the Fly workflow (unit tests with a Postgres service), and make deploy wait for it.<span class="fix">~30 min. Without it, the rest only helps when someone remembers to run them.</span></li>
+<li><b>Replace the faked route tests with real ones.</b>One table of route, method and "signed out / not yours / yours" against the real handlers, real rules and a local database. Then delete the 29 stand-in tests.<span class="fix">~2 h. Covers risks 1, 2 and 4.</span></li>
+<li><b>Test what parents see for the limit, rename, delete and sign-out.</b>Extend the one browser test, or add three short ones.<span class="fix">~2 h.</span></li>
+<li><b>Stop sending server errors to the browser.</b>The chat route returns <code>error.message</code> on a 500. Send a plain "Something went wrong" and log the detail. Update the one test that pins it.<span class="fix">~15 min.</span></li>
+<li><b>Delete the tests that can't fail.</b><code>main.test</code>, the 4 type tests, "dates in UTC", the duplicate cap test.<span class="fix">~10 min.</span></li>
+</ol>
+
+<p class="note">How this was made: every test file read and classified by hand (one class per test, the worst that applies). Unit tests ran on main at <code>95a61b8</code> against a throwaway Postgres 14 with the repo migrations applied. The local browser test ran with the cached Chromium build, because the pinned one wasn't installed; no browser was downloaded. The live test ran signed out only. Counts are per test name; <code>it.each</code> rows count once each, as Vitest reports them.</p>
+
+</main>
+</body>
+</html>
