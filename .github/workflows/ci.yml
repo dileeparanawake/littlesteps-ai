@@ -1,0 +1,78 @@
+# Typecheck, lint and unit tests (ls#78).
+# Runs on every PR, and on main as the gate before the Fly deploy:
+# fly-deploy.yml calls this workflow and its deploy job `needs:` it.
+
+name: CI
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Typecheck, lint, unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: littlesteps_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Test-only values: a throwaway CI database and fake keys. No real secrets.
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/littlesteps_test
+      BETTER_AUTH_SECRET: ci-test-secret-not-real
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+      GOOGLE_CLIENT_ID: ci-test-client-id
+      GOOGLE_CLIENT_SECRET: ci-test-client-secret
+      OPENAI_API_KEY: sk-ci-test-not-real
+      MOCK_API: 'true'
+      WEEKLY_CAP_TOKENS: '100000'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.3
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+      - name: Lint
+        run: pnpm lint
+      - name: Migrate test database
+        run: pnpm drizzle-kit migrate
+      - name: Unit and DB tests
+        run: pnpm vitest run
+
+  # PRs only: on main, the deploy itself builds this image on Fly.
+  docker:
+    name: Production Docker build (what Fly builds)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.prod
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
