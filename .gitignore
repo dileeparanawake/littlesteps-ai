@@ -62,3 +62,6 @@ dist
 
 # Docker Postgres DB
 /pgdata
+# Playwright
+/playwright-report/
+/blob-report/

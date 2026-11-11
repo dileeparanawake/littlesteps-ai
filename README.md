@@ -233,6 +233,15 @@ pnpm test
 
 DB-backed (Vitest + Docker Postgres): create/read/update/delete flows for threads/messages.
 
+End-to-end (Playwright, records video):
+
+```bash
+pnpm test:e2e        # local build: type → sign-in prompt → signed in → two messages → replies render (real OpenAI call)
+pnpm test:e2e:live   # live site, signed out only: pages return 200, sign-in prompt appears
+```
+
+The local run needs Postgres at `E2E_DATABASE_URL` (default `localhost:55432/littlesteps_e2e`, migrated) and `OPENAI_API_KEY` in `.env`. It signs in by seeding a session into that local database (`e2e/support/session-seed.ts`); the seed refuses production and any non-local database.
+
 ## Local Development
 
 See full guide: [`public/docs/local-dev-guide.md`](./docs/local-dev-guide.md)
