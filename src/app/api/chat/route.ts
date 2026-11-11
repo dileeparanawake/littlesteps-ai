@@ -8,6 +8,7 @@ import {
 import { assertSessionHasUser } from '@/lib/access-control/assert-session-user';
 
 import { createThread } from '@/lib/chat/create-thread';
+import { titleFromPrompt } from '@/lib/chat/thread-title';
 import { addMessageToThread } from '@/lib/chat/create-message';
 import { getThreadMessages, userOwnsThread } from '@/lib/chat/read-thread';
 import { OpenAIResponseService } from '@/lib/ai/openai-response-service';
@@ -55,10 +56,11 @@ export async function POST(req: Request) {
       }
     }
 
-    // 6. Business logic: create or reuse thread
+    // 6. Business logic: create or reuse thread (a new one is named from
+    // its first message, so it never stays "Untitled Thread")
     const threadID = existingThreadId
       ? existingThreadId
-      : (await createThread(userId)).id;
+      : (await createThread(userId, titleFromPrompt(prompt))).id;
 
     // add user prompt to thread
     await addMessageToThread(threadID, 'user', prompt);
