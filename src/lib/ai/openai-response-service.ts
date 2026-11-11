@@ -21,11 +21,13 @@ class OpenAIResponseServiceImpl implements AIResponseService {
     options?: ResponseOptions,
   ): Promise<AIResponse> {
     // Build request parameters
-    // gpt-5-nano shuts down 11 Dec 2026; gpt-6-luna is OpenAI's current
-    // cost-sensitive model. It has no 'minimal' effort; 'none' is the closest.
-    // The pinned SDK's ReasoningEffort type predates 'none', hence the cast.
+    // gpt-5-nano shuts down 11 Dec 2026 (ls#73). gpt-5.6-luna is OpenAI's
+    // named replacement and sits in the data-sharing free daily token group,
+    // so at LittleSteps' volume it can cost nothing. No 'minimal' effort;
+    // 'none' is the closest. The pinned SDK's ReasoningEffort type predates
+    // 'none', hence the cast.
     const requestParams: ChatCompletionCreateParamsNonStreaming = {
-      model: 'gpt-6-luna',
+      model: 'gpt-5.6-luna',
       messages: messages,
       reasoning_effort: 'none' as unknown as ReasoningEffort,
     };

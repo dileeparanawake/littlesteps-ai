@@ -1,7 +1,7 @@
 // Model-upgrade eval (PR #71): gpt-5-nano vs gpt-6-luna on realistic parent questions.
 // Uses the app's own SYSTEM_MESSAGE and the same request shape as openai-response-service.ts.
 // Run: pnpm exec tsx --env-file=<path to .env> scripts/eval-model-upgrade.ts [variant]
-//   variant: "base" (default) | "tweak" (gpt-6-luna with reasoning_effort 'low')
+//   variant: "base" (default) | "tweak" (gpt-6-luna with reasoning_effort 'low') | "luna56" (gpt-5.6-luna, 'none')
 // Writes docs/evals/model-upgrade-<variant>.json. Never prints the key.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { OpenAI } from 'openai';
@@ -32,11 +32,14 @@ type Cfg = { model: string; effort: string };
 const OLD: Cfg = { model: 'gpt-5-nano', effort: 'minimal' };
 const NEW: Cfg = { model: 'gpt-6-luna', effort: 'none' };
 const TWEAK: Cfg = { model: 'gpt-6-luna', effort: 'low' };
+// gpt-5.6-luna: OpenAI's named replacement, and in the data-sharing free daily tokens group (ls#73).
+const LUNA56: Cfg = { model: 'gpt-5.6-luna', effort: 'none' };
 const JUDGE = 'gpt-5-mini';
-// USD per 1M tokens (in, out). gpt-6-luna price assumed at nano-class; check.
+// USD per 1M tokens (in, out), OpenAI pricing page, 11 Nov 2026.
 const PRICE: Record<string, [number, number]> = {
   'gpt-5-nano': [0.05, 0.4],
-  'gpt-6-luna': [0.1, 0.8],
+  'gpt-6-luna': [0.1, 0.5],
+  'gpt-5.6-luna': [0.2, 1.2],
   'gpt-5-mini': [0.25, 2.0],
 };
 const BUDGET_USD = 0.1;
@@ -87,7 +90,7 @@ async function judge(prompt: string, a: string, b: string) {
 
 async function main() {
   const variant = process.argv[2] ?? 'base';
-  const cand = variant === 'tweak' ? TWEAK : NEW;
+  const cand = variant === 'tweak' ? TWEAK : variant === 'luna56' ? LUNA56 : NEW;
   const rows = [];
   for (const [i, p] of PROMPTS.entries()) {
     const [old, neu] = await Promise.all([answer(OLD, p), answer(cand, p)]);
