@@ -27,6 +27,28 @@ export async function typePrompt(page: Page, text: string): Promise<void> {
 }
 
 /**
+ * Right after Ask: the parent's own message is on screen, with a thinking
+ * state and a screen-reader status, while the reply is still on its way.
+ */
+export async function expectSentAtOnce(
+  page: Page,
+  text: string,
+  userCount: number,
+): Promise<void> {
+  const sent = messages(page, 'user').nth(userCount - 1);
+  await expect(messages(page, 'user')).toHaveCount(userCount, {
+    timeout: 2_000,
+  });
+  await expect(sent).toContainText(text.replace(/\*\*/g, ''));
+  await expect(messages(page, 'assistant')).toHaveCount(userCount - 1);
+  await expect(page.locator('[data-thinking]')).toBeVisible();
+  await expect(page.getByRole('status')).toHaveText(
+    'Message sent. Waiting for a reply…',
+  );
+  await expect(chatInput(page)).toHaveValue('');
+}
+
+/**
  * Checks a message rendered as formatted text, not raw model output.
  * Behaviour only: never the model name or the exact reply.
  */
