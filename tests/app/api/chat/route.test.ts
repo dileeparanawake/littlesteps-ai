@@ -242,7 +242,7 @@ describe('POST /api/chat access control integration', () => {
     expect(body).toHaveProperty('threadID');
 
     // Assert: business logic WAS invoked
-    expect(mockCreateThread).toHaveBeenCalledWith('user-123');
+    expect(mockCreateThread).toHaveBeenCalledWith('user-123', 'Hello');
     expect(mockAddMessageToThread).toHaveBeenCalled();
     expect(mockGetThreadMessages).toHaveBeenCalled();
     // Assert: adapter was called with correct parameters
@@ -376,7 +376,9 @@ describe('POST /api/chat access control integration', () => {
 
     const { POST } = await import('@/app/api/chat/route');
 
-    const req = createPostRequest('Hello');
+    const req = createPostRequest(
+      'How can I help my toddler sleep better at night?',
+    );
 
     // Act
     const response = await POST(req);
@@ -386,8 +388,12 @@ describe('POST /api/chat access control integration', () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({ threadID: 'thread-123' });
 
-    // Assert: createThread was called (not userOwnsThread)
-    expect(mockCreateThread).toHaveBeenCalledWith('user-123');
+    // Assert: createThread was called (not userOwnsThread), and the new
+    // thread is named from the first message, not left untitled
+    expect(mockCreateThread).toHaveBeenCalledWith(
+      'user-123',
+      'How can I help my toddler…',
+    );
     expect(mockUserOwnsThread).not.toHaveBeenCalled();
 
     // Assert: business logic proceeded normally

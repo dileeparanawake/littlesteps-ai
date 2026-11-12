@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 
 import SafetyBanner from '@/components/chat/ChatThread/SafetyBanner';
 import { useSidebar } from '@/components/chat/ChatSidebar/SidebarContext';
+import { useAnnounce } from '@/components/chat/ChatStatus';
 import { fetchThreadMessages } from '@/lib/api/messages';
 
 type ChatThreadProps = {
@@ -30,6 +31,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   // hooks
   const { data: session } = authClient.useSession();
   const { setShowSignIn } = useModal();
+  const announce = useAnnounce();
 
   // Get messages to track count changes
   const { data: messages } = useQuery({
@@ -49,6 +51,8 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   const [prompt, setPrompt] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<null | string>(null);
+  // The message just sent: shown straight away, until the saved copy arrives
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   // effects
   useEffect(() => {
@@ -118,6 +122,13 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
     return () => clearTimeout(timeoutId);
   }, [isAtBottom, hasNewMessages, messages]);
 
+  // Bring the just-sent message into view
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!pendingPrompt || !scrollContainer) return;
+    scrollContainer.scrollTo({ top: scrollContainer.scrollHeight });
+  }, [pendingPrompt]);
+
   // Scroll to bottom handler
   const handleScrollToBottom = () => {
     const scrollContainer = scrollContainerRef.current;
@@ -138,22 +149,26 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
   };
 
   const handleSubmit = async (): Promise<void> => {
-    setIsLoading(true);
-
     if (!session?.user) {
       sessionStorage.setItem('savedPrompt', prompt);
-      setIsLoading(false);
       setShowSignIn(true);
       return;
     }
 
     if (!prompt.trim()) {
       setError('Please enter a prompt.');
-      setIsLoading(false);
       return;
     }
 
-    // handle submit > api call
+    // Show the message at once and clear the box; the reply follows
+    const sent = prompt;
+    setIsLoading(true);
+    setPendingPrompt(sent);
+    setPrompt('');
+    announce('Message sent. Waiting for a reply…');
+
+    const userId = session.user.id;
+    let navigating = false;
 
     try {
       const response = await fetch(
@@ -163,7 +178,7 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ prompt: sent }),
         },
       );
 
@@ -172,32 +187,39 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
         throw new Error(`Server error: ${error}`);
       }
 
-      if (response.ok) {
-        const { threadID } = await response.json();
-        setPrompt('');
+      const { threadID } = await response.json();
 
-        // Invalidate threads query for both new and existing threads
-        // This ensures ThreadTitle stays visible after message submission
-        if (session?.user?.id) {
-          queryClient.invalidateQueries({
-            queryKey: ['threads', session.user.id],
-          });
-        }
+      // Load the saved messages and the (possibly new) title before the
+      // pending bubble goes, so the swap is seamless: no flash, no jump.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['threads', userId] }),
+        threadID === threadId
+          ? queryClient.invalidateQueries({
+              queryKey: ['threadMessages', threadID],
+            })
+          : queryClient.prefetchQuery({
+              queryKey: ['threadMessages', threadID],
+              queryFn: () => fetchThreadMessages(threadID),
+            }),
+      ]);
+      announce('Reply received.');
 
-        // Invalidate messages query for the thread
-        queryClient.invalidateQueries({
-          queryKey: ['threadMessages', threadID],
-        });
-
-        // Navigate after invalidations are queued
+      if (threadID !== threadId) {
+        // A new chat moves to its own page, which renders from the cache
+        navigating = true;
         router.push(`/chat/${threadID}`);
       }
     } catch (error: unknown) {
+      // Give the message back so nothing typed is lost
+      setPrompt((current) => current || sent);
+      announce('');
       if (error instanceof Error) {
         setError(error.message || 'Something went wrong.');
       }
     } finally {
       setIsLoading(false);
+      // A new chat keeps its pending bubble until this page unmounts
+      if (!navigating) setPendingPrompt(null);
     }
   };
 
@@ -220,14 +242,14 @@ export default function ChatThread({ threadId }: ChatThreadProps) {
       >
         <div
           className={
-            threadId
+            threadId || pendingPrompt
               ? 'mx-auto w-full max-w-3xl px-4 py-4 min-h-full'
               : 'mx-auto w-full max-w-3xl px-4 py-4 min-h-full flex items-center justify-center'
           }
         >
-          {threadId ? (
-            // Render the message list when there's an existing thread
-            <MessageList threadId={threadId} />
+          {threadId || pendingPrompt ? (
+            // Render the message list for an existing thread or a first message
+            <MessageList threadId={threadId} pendingPrompt={pendingPrompt} />
           ) : (
             // Empty state: centered between header and footer
             <p className="text-sm text-center text-muted-foreground/70">
